@@ -9,9 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -29,21 +27,38 @@ import kso.repo.search.viewModel.SearchBoxViewModel
 import kso.repo.search.ui.state.SearchBoxViewModelState
 
 
-private const val TAG="UserSearchUI"
+private const val TAG="UserSearchBoxPage"
 
 @ExperimentalComposeUiApi
 @ExperimentalAnimationApi
 @Composable
 fun SearchBoxPage(navHostController: NavHostController, userSearchViewModel: SearchBoxViewModel) {
 
+    //normal collect
     val userSearchModelState by userSearchViewModel.userSearchModelState.collectAsState(initial = SearchBoxViewModelState.Empty)
+
+    //normal effect
+    LaunchedEffect(Unit) {
+
+        Log.e(TAG, "LaunchedEffect")
+
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            Log.e(TAG, "onDispose")
+        }
+    }
+
+    Log.e(TAG, "searchText: ${userSearchModelState.searchText}")
 
     SearchBoxView(
         searchText = userSearchModelState.searchText,
         placeholderText = "Search user",
         onSearchTextChanged = { userSearchViewModel.onSearchTextChanged(it) },
-        onClearClick = { userSearchViewModel.onClearClick() },
+        onClearClick = { userSearchViewModel.onSearchBoxClear() },
         onNavigateBack = {
+            Log.e(TAG, "onNavigateBack")
             navHostController.popBackStack()
         },
         showProgress = userSearchModelState.showProgressBar,
@@ -56,10 +71,10 @@ fun SearchBoxPage(navHostController: NavHostController, userSearchViewModel: Sea
 
             items(items = userSearchModelState.users) { user ->
                 UserRow(user = user) {
-                    val arg_login = user.login
-                    Log.e("Route Args - login ->", "${NavPath.HomePage.route}?login=$arg_login")
+                    val argLogin = user.login
+                    Log.e(TAG, "Route: ${NavPath.HomePage.route}?login=$argLogin")
                     navHostController.navigate(
-                        route = "${NavPath.HomePage.route}?login=${arg_login}"
+                        route = "${NavPath.HomePage.route}?login=${argLogin}"
                     )
                 }
             }

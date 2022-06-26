@@ -1,5 +1,6 @@
 package kso.repo.search.viewModel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -42,6 +43,7 @@ class SearchBoxViewModel @Inject constructor(private val userRepository: AppRepo
     @OptIn(FlowPreview::class)
     private fun gitHubUsers() {
 
+        Log.e(TAG, "init")
         viewModelScope.launch {
             showProgressBar.value = true
             val users: List<User> = userRepository.getUserList()
@@ -59,6 +61,7 @@ class SearchBoxViewModel @Inject constructor(private val userRepository: AppRepo
 
     fun onSearchTextChanged(changedSearchText: String) {
 
+        Log.e(TAG, "onSearchTextChanged: keywordt ${searchText.value}")
         searchText.value = changedSearchText
         if (changedSearchText.isEmpty()) {
             matchedUsers.value = arrayListOf()
@@ -72,7 +75,8 @@ class SearchBoxViewModel @Inject constructor(private val userRepository: AppRepo
 
     }
 
-    fun onClearClick() {
+    fun onSearchBoxClear() {
+        Log.e(TAG, "onSearchClear: ")
         searchText.value = ""
         matchedUsers.value = arrayListOf()
     }

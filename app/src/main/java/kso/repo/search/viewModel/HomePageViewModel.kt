@@ -49,16 +49,18 @@ class HomePageViewModel @Inject constructor(savedStateHandle: SavedStateHandle, 
     }
 
     fun onResume() {
-        Log.e(TAG, "Resume:");
-        Log.e(TAG, "Argument:" + login);
+        Log.e(TAG, "onResume:")
+        Log.e(TAG, "Argument: $login")
         viewModelScope.launch {
+            Log.e(TAG, "in ViewModelScope")
             responseSharedFlow.emit(Unit)
         }
     }
 
     fun retry() {
-        Log.e(TAG, "Retry Click")
+        Log.e(TAG, "Retry:")
         viewModelScope.launch {
+            Log.e(TAG, "in ViewModelScope")
             responseSharedFlow.emit(Unit)
         }
     }
