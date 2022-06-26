@@ -2,6 +2,7 @@ package kso.repo.search.viewModel
 import android.util.Log
 import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kso.repo.search.model.Resource
@@ -19,6 +20,7 @@ class HomePageViewModel @Inject constructor(savedStateHandle: SavedStateHandle, 
 
     private val responseSharedFlow = MutableSharedFlow<Unit>()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val responseResource = responseSharedFlow
         .map { userName.value }
         .flatMapLatest { repository.getRepoList(it) }
