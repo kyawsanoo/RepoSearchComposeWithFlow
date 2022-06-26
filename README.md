@@ -181,7 +181,6 @@ fun SearchBoxPage(navHostController: NavHostController, userSearchViewModel: Sea
     * [kotlin coroutines](https://github.com/Kotlin/kotlinx.coroutines)
 * [material-components](https://github.com/material-components/material-components-android)
 * [coil](https://github.com/coil-kt/coil)
-* [koin](https://github.com/InsertKoinIO/koin)
 * [retrofit](https://github.com/square/retrofit)
 * [okhttp](https://github.com/square/okhttp)
 * [hilt](https://dagger.dev/hilt/)
