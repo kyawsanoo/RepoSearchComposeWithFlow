@@ -7,7 +7,8 @@
 
     <string name="icn_search_clear_content_description">Clear Search</string>
 
-
+    <string name="icon_star_text">star icon</string>
+    <string name="icon_fork_text">fork icon</string>
     <string name="icn_user_detail_app_bar_back_button">Navigate back</string>
     <string name="icon_error_info_text">Error Info</string>
     <string name="icon_img_text">Image from Url</string>

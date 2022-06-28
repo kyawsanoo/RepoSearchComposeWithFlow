@@ -1,21 +1,28 @@
 package kso.repo.search.ui.home
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme.typography
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -25,6 +32,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavHostController
+import coil.compose.SubcomposeAsyncImage
 import kso.repo.search.R
 import kso.repo.search.app.NavPath
 import kso.repo.search.app.collectAsStateLifecycleAware
@@ -34,6 +42,7 @@ import kso.repo.search.model.Repo
 import kso.repo.search.model.Resource
 import kso.repo.search.ui.common.ErrorScreen
 import kso.repo.search.ui.common.LoadingScreen
+import kso.repo.search.ui.common.SpannableText
 import kso.repo.search.viewModel.HomePageViewModel
 
 const val TAG: String = "HomePage"
@@ -273,28 +282,119 @@ fun RepoRow(repo: Repo, onClick: () -> Unit) {
         elevation = 5.dp,
         backgroundColor = MaterialTheme.colors.surface
     ) {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 10.dp)
-            .clickable { onClick() }) {
+        Row(
+            //horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+                .clickable { onClick() }
+        ) {
 
-            Text("Repo Name",  fontSize = 13.sp, style = typography.h3)
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(repo.name, fontSize = 13.sp, fontWeight = FontWeight.Bold, style = typography.h4, modifier = Modifier.padding(horizontal = 10.dp))
-            Spacer(modifier = Modifier.height(2.dp))
-            Text("Description",  fontSize = 13.sp, style = typography.h3)
-            Spacer(modifier = Modifier.height(2.dp))
-            if(repo.description!= null){
-                Text(repo.description, fontSize = 13.sp, fontWeight = FontWeight.Bold, style = typography.h4, modifier = Modifier.padding(horizontal = 10.dp))
-            }else Text("-", fontSize = 13.sp, fontWeight = FontWeight.Bold, style = typography.h4,  modifier = Modifier.padding(horizontal = 10.dp))
-            Spacer(modifier = Modifier.height(4.dp))
-            Text("Language",  fontSize = 13.sp, style = typography.h3)
-            Spacer(modifier = Modifier.height(2.dp))
-            if(repo.language!= null){
-                Text(repo.language, fontSize = 13.sp, fontWeight = FontWeight.Bold, style = typography.h4, modifier = Modifier.padding(horizontal = 10.dp))
-            }else Text("-", fontSize = 13.sp, fontWeight = FontWeight.Bold, style = typography.h4,  modifier = Modifier.padding(horizontal = 10.dp))
-            Spacer(modifier = Modifier.height(4.dp))
+            SubcomposeAsyncImage(
+                model = repo.owner?.avatarUrl,
+                loading = {
+                    CircularProgressIndicator()
+                },
+                contentDescription = stringResource(R.string.icon_img_text),
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .width(35.dp)
+                    .height(35.dp)
+            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalAlignment = Alignment.Start,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+            ) {
+                repo.description?.let { Text(it, fontSize = 13.sp) }
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(20.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .wrapContentWidth()
+
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Filled.Star,
+                                modifier = Modifier
+                                    //.clip(CircleShape)
+                                    .width(20.dp)
+                                    .height(20.dp),
+                                tint = Color.Blue,
+                                contentDescription = stringResource(id = R.string.icon_star_text)
+                            )
+                            Text("${repo.stargazersCount}")
+                        }
+
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            ForkIcon()
+                            Text("${repo.forksCount}")
+                        }
+
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color.LightGray)
+                        ) {
+                            repo.language?.let {
+                                Text(
+                                    it,
+
+                                    modifier = Modifier
+                                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                                        .width(80.dp)
+                                        .wrapContentHeight(),
+                                    fontSize = 13.sp,
+                                    color = Color.Black,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+
+                    }
+                }
+
+            }
+
         }
     }
 
 }
+
+@Composable
+fun ForkIcon() {
+    val image: Painter = painterResource(id = R.drawable.directions_fork)
+    Image(
+        painter = image,
+        colorFilter = ColorFilter.tint(color = Color.Blue),
+        contentDescription = stringResource(id = R.string.icon_fork_text),
+        modifier = Modifier
+            //.clip(CircleShape)
+            .width(20.dp)
+            .height(20.dp),
+
+    )
+}
+

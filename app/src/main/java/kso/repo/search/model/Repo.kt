@@ -35,7 +35,7 @@ data class Repo(
     val watchers: Int = 0,
 
     @SerializedName("language")
-    val language: String? = null,
+    val language: String? = "",
 
     @SerializedName("forks_count")
     val forksCount: Int = 0,
@@ -50,7 +50,10 @@ data class Repo(
     val openIssuesCount: Int = 0,
 
     @SerializedName("default_branch")
-    val defaultBranch: String=""
+    val defaultBranch: String="",
+
+    @SerializedName("stargazers_count")
+    val stargazersCount: Int = 0,
 
   /*
     @SerializedName("created_at")
@@ -68,8 +71,7 @@ data class Repo(
     @SerializedName("svn_url")
     val svnUrl: String,
     val homepage: String?,
-    @SerializedName("stargazers_count")
-    val stargazersCount: Int,
+
     @SerializedName("has_issues")
     val hasIssues: Boolean,
     @SerializedName("has_downloads")
