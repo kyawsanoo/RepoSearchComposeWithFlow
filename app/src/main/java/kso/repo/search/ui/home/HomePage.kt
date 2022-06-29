@@ -41,6 +41,7 @@ import kso.repo.search.app.rememberFlowWithLifecycle
 import kso.repo.search.model.Repo
 import kso.repo.search.model.Resource
 import kso.repo.search.ui.common.ErrorScreen
+import kso.repo.search.ui.common.ForkIcon
 import kso.repo.search.ui.common.LoadingScreen
 import kso.repo.search.ui.common.SpannableText
 import kso.repo.search.viewModel.HomePageViewModel
@@ -368,7 +369,8 @@ fun RepoRow(repo: Repo, onClick: () -> Unit) {
                                         .wrapContentHeight(),
                                     fontSize = 13.sp,
                                     color = Color.Black,
-                                    textAlign = TextAlign.Center
+                                    textAlign = TextAlign.Center,
+
                                 )
                             }
                         }
@@ -383,18 +385,4 @@ fun RepoRow(repo: Repo, onClick: () -> Unit) {
 
 }
 
-@Composable
-fun ForkIcon() {
-    val image: Painter = painterResource(id = R.drawable.directions_fork)
-    Image(
-        painter = image,
-        colorFilter = ColorFilter.tint(color = Color.Blue),
-        contentDescription = stringResource(id = R.string.icon_fork_text),
-        modifier = Modifier
-            //.clip(CircleShape)
-            .width(20.dp)
-            .height(20.dp),
-
-    )
-}
 
