@@ -1,4 +1,5 @@
 package kso.repo.search.viewModel
+
 import android.util.Log
 import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,17 +14,17 @@ import javax.inject.Inject
 class HomePageViewModel @Inject constructor(savedStateHandle: SavedStateHandle, repository: AppRepository):
     ViewModel(){
 
-    val TAG: String = "HomePageViewModel"
-    private val login: String = savedStateHandle.get<String>("login").orEmpty()
+    private val TAG: String = "HomePageViewModel"
+    private val login: String = savedStateHandle.get<String>("repo_name").orEmpty()
 
-    val userName = MutableStateFlow(login)
+    val repoName = MutableStateFlow(login)
 
     private val responseSharedFlow = MutableSharedFlow<Unit>()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val responseResource = responseSharedFlow
-        .map { userName.value }
-        .flatMapLatest { repository.getRepoList(it) }
+        .map { repoName.value }
+        .flatMapLatest { repository.getSearchRepoList(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, Resource.Loading)
 
     val errorMessage = responseResource.map {
@@ -44,9 +45,6 @@ class HomePageViewModel @Inject constructor(savedStateHandle: SavedStateHandle, 
         }
     }*/
 
-    fun setUserName(userName: String) {
-        this.userName.value = userName
-    }
 
     fun onResume() {
         Log.e(TAG, "onResume:")

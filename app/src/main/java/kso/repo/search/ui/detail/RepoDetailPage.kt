@@ -1,12 +1,7 @@
 package kso.repo.search.ui.detail
 
-import android.content.Intent
-import android.graphics.Paint
-import android.net.Uri
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme.typography
@@ -16,14 +11,11 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -31,7 +23,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import coil.compose.SubcomposeAsyncImage
 import kso.repo.search.R
 import kso.repo.search.app.NavPath
 import kso.repo.search.model.Repo
@@ -50,9 +41,21 @@ import kso.repo.search.viewModel.RepoDetailPageViewModel
         val errorMessage by repoDetailViewModel.errorMessage.collectAsState("")
 
         Scaffold(topBar = {
-            RepoDetailAppBar(
-                onBackClick = {
-                    navHostController.popBackStack()
+            TopAppBar(
+                title = {
+                    TitleText(
+                        textValue = "RepoDetail",
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                navigationIcon = {
+                    IconButton(onClick = { navHostController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            modifier = Modifier,
+                            contentDescription = stringResource(id = R.string.icn_user_detail_app_bar_back_button)
+                        )
+                    }
                 }
             )
         }) {

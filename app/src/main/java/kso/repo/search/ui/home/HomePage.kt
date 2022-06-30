@@ -1,7 +1,6 @@
 package kso.repo.search.ui.home
 
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,31 +18,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.flowWithLifecycle
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
 import kso.repo.search.R
 import kso.repo.search.app.NavPath
 import kso.repo.search.app.collectAsStateLifecycleAware
-import kso.repo.search.app.rememberFlow
-import kso.repo.search.app.rememberFlowWithLifecycle
 import kso.repo.search.model.Repo
 import kso.repo.search.model.Resource
 import kso.repo.search.ui.common.ErrorScreen
 import kso.repo.search.ui.common.ForkIcon
 import kso.repo.search.ui.common.LoadingScreen
-import kso.repo.search.ui.common.SpannableText
 import kso.repo.search.viewModel.HomePageViewModel
 
 const val TAG: String = "HomePage"
@@ -54,64 +45,11 @@ fun HomePage(
     homePageViewModel: HomePageViewModel,
     scaffoldState: ScaffoldState = rememberScaffoldState()
 ) {
-    //lifecycel aware collect(Method-4)
+    //lifecycel aware collect
 
-    val userName by homePageViewModel.userName.collectAsStateLifecycleAware(initial = "")
+    val repoName by homePageViewModel.repoName.collectAsStateLifecycleAware(initial = "")
     val errorMessage by homePageViewModel.errorMessage.collectAsStateLifecycleAware(initial = "")
     val resource by homePageViewModel.responseResource.collectAsStateLifecycleAware(initial = Resource.Loading)
-
-
-    //lifecycel aware collect(Method-3)
-
-    /*
-    val lifecycleAwareUserName = rememberFlowWithLifecycle( homePageViewModel.userName)
-    val lifecycleAwareResponseResource = rememberFlowWithLifecycle( homePageViewModel.responseResource)
-    val lifecycleAwareErrorMessage = rememberFlowWithLifecycle( homePageViewModel.errorMessage)
-    val userName by lifecycleAwareUserName.collectAsState(initial = "")
-    val resource by lifecycleAwareResponseResource.collectAsState(initial = Resource.Loading)
-    val errorMessage by lifecycleAwareErrorMessage.collectAsState(initial = "")
-    */
-
-
-
-    //lifecycel aware collect(Method-2)
-
-    /*
-    val lifecycleAwareUserName = rememberFlow( homePageViewModel.userName)
-    val lifecycleAwareResponseResource = rememberFlow( homePageViewModel.responseResource)
-    val lifecycleAwareErrorMessage = rememberFlow( homePageViewModel.errorMessage)
-    val userName by lifecycleAwareUserName.collectAsState(initial = "")
-    val resource by lifecycleAwareResponseResource.collectAsState(initial = Resource.Loading)
-    val errorMessage by lifecycleAwareErrorMessage.collectAsState(initial = "")
-    */
-
-
-    //lifecycel aware collect(Method-1)
-
-    /*
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val lifecycleAwareUserName = remember( homePageViewModel.userName, lifecycleOwner) {
-        homePageViewModel.userName.flowWithLifecycle(lifecycleOwner.lifecycle, Lifecycle.State.STARTED)
-    }
-    val lifecycleAwareResponseResource = remember( homePageViewModel.responseResource, lifecycleOwner) {
-        homePageViewModel.responseResource.flowWithLifecycle(lifecycleOwner.lifecycle, Lifecycle.State.STARTED)
-    }
-    val lifecycleAwareErrorMessage = remember( homePageViewModel.errorMessage, lifecycleOwner) {
-        homePageViewModel.errorMessage.flowWithLifecycle(lifecycleOwner.lifecycle, Lifecycle.State.STARTED)
-    }
-    val userName by lifecycleAwareUserName.collectAsState(initial = "")
-    val resource by lifecycleAwareResponseResource.collectAsState(initial = Resource.Loading)
-    val errorMessage by lifecycleAwareErrorMessage.collectAsState(initial = "")
-    */
-
-
-   //normal collect, lifecycle not aware, not recommended way
-
-   /*
-    val userName by homePageViewModel.userName.collectAsState(initial = "")
-    val resource by homePageViewModel.responseResource.collectAsState(initial = Resource.Loading)
-    val errorMessage by homePageViewModel.errorMessage.collectAsState(initial = "")
-    */
 
 
     //normal effect
@@ -149,8 +87,8 @@ fun HomePage(
 
     Scaffold(
         topBar = {
-            AppBar(userName, onSearchBarClick = {
-                    navHostController.navigate(route = NavPath.SearchBoxPage.route)
+            AppBar(repoName, onSearchBarClick = {
+                    navHostController.navigate(route = NavPath.RepoSearchBoxPage.route)
                 }
             )
         },
@@ -172,43 +110,13 @@ fun HomePage(
 
                         items(items = resource.data.orEmpty()) { repo ->
                             RepoRow(repo = repo) {
-                                navHostController.navigate(route = "${NavPath.RepoDetail.route}?login=${userName}&repoName=${repo.name}")
+                                navHostController.navigate(route = "${NavPath.RepoDetail.route}?login=${repo.owner?.login}&repoName=${repo.name}")
                             }
                         }
                     }
                 }
 
             }
-
-            //the way of if condition
-            /*
-            if(resource.isLoading){
-                Log.e(TAG, "Loading")
-                LoadingScreen()
-            }else if(resource.isFail){
-                Log.e(TAG, "Fail")
-               ErrorScreen(errorMessage = errorMessage, onRetryClick = {
-                   Log.e(TAG, "Retry Click")
-                   homePageViewModel.retry()}
-               )
-            }
-            else {
-                Log.e(TAG, "Success")
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(5.dp)
-                ) {
-
-                    items(items = resource.data.orEmpty()) { repo ->
-                        RepoRow(repo = repo) {
-                            navHostController.navigate(route = "${NavPath.RepoDetail.route}?login=${userName}&repoName=${repo.name}")
-                        }
-                    }
-                }
-            }
-            */
-
-
 
     }
 
@@ -249,6 +157,7 @@ fun TitleText(
         Text( text = "${stringResource(id = R.string.app_name)} : ",
             fontSize = 14.sp,
             style = typography.h5,
+            maxLines = 1
         )
         Box(
             modifier = Modifier
