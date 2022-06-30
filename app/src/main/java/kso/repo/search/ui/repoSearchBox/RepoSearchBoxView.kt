@@ -67,7 +67,7 @@ fun RepoSearchBoxView(
                     contentAlignment = Alignment.CenterStart
                 ) {
                     Text(
-                        text = "Select user",
+                        text = "Select repo",
                         color = Color.Black,
                         textAlign = TextAlign.Center,
                         fontSize = 13.sp,
