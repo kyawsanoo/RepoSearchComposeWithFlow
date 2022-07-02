@@ -88,7 +88,10 @@ class RepoSearchAppRepository @Inject constructor(private val dataSource: RestDa
                     val errorMessage = when(e.toString().contains("java.net.UnknownHostException")){
                         true -> "Please check your connection and retry"
                         else -> {
-                            e.toString()
+                            when(e.toString().contains("retrofit2.HttpException: HTTP 403")){
+                                true -> "Not found repo with this name"
+                                else -> e.toString()
+                            }
                         }
                     }
                     Resource.Fail(errorMessage)

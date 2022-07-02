@@ -138,8 +138,6 @@ import kso.repo.search.viewModel.RepoDetailPageViewModel
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("Language : ", fontSize = 13.sp,)
-                                    Spacer(modifier = Modifier.width(1.dp))
                                     repo?.language?.let {
                                         Text(
                                             it,
