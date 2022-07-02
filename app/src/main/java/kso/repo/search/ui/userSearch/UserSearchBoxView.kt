@@ -1,6 +1,5 @@
-package kso.repo.search.ui.repoSearchBox
+package kso.repo.search.ui.userSearch
 
-import android.graphics.Paint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
@@ -36,7 +35,7 @@ import kso.repo.search.ui.common.LoadingScreen
 @ExperimentalAnimationApi
 @ExperimentalComposeUiApi
 @Composable
-fun RepoSearchBoxView(
+fun SearchBoxView(
     searchText: String,
     placeholderText: String = "",
     onSearchTextChanged: (String) -> Unit = {},
@@ -67,7 +66,7 @@ fun RepoSearchBoxView(
                     contentAlignment = Alignment.CenterStart
                 ) {
                     Text(
-                        text = "Select repo",
+                        text = stringResource(id=R.string.select_user),
                         color = Color.Black,
                         textAlign = TextAlign.Center,
                         fontSize = 13.sp,
@@ -184,7 +183,7 @@ fun NoSearchResults() {
         horizontalAlignment = CenterHorizontally
     ) {
 
-        Text("No matched users found")
+        Text(stringResource(id = R.string.no_matched_user_found))
 
     }
 }

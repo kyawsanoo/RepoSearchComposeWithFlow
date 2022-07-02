@@ -1,4 +1,4 @@
-package kso.repo.search.ui.searchBox
+package kso.repo.search.ui.userSearch
 
 import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -21,40 +21,27 @@ import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
 import kso.repo.search.R
 import kso.repo.search.app.NavPath
+import kso.repo.search.app.collectAsStateLifecycleAware
 import kso.repo.search.model.User
 import kso.repo.search.ui.common.SpannableText
 import kso.repo.search.viewModel.SearchBoxViewModel
 import kso.repo.search.ui.state.SearchBoxViewModelState
 
 
-private const val TAG="UserSearchBoxPage"
+private const val TAG="UserSearchPage"
 
 @ExperimentalComposeUiApi
 @ExperimentalAnimationApi
 @Composable
 fun SearchBoxPage(navHostController: NavHostController, userSearchViewModel: SearchBoxViewModel) {
 
-    //normal collect
-    val userSearchModelState by userSearchViewModel.userSearchModelState.collectAsState(initial = SearchBoxViewModelState.Empty)
-
-    //normal effect
-    LaunchedEffect(Unit) {
-
-        Log.e(TAG, "LaunchedEffect")
-
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            Log.e(TAG, "onDispose")
-        }
-    }
+    val userSearchModelState by userSearchViewModel.userSearchModelState.collectAsStateLifecycleAware(initial = SearchBoxViewModelState.Empty)
 
     Log.e(TAG, "searchText: ${userSearchModelState.searchText}")
 
     SearchBoxView(
         searchText = userSearchModelState.searchText,
-        placeholderText = "Search user",
+        placeholderText = stringResource(R.string.search_user),
         onSearchTextChanged = { userSearchViewModel.onSearchTextChanged(it) },
         onClearClick = { userSearchViewModel.onSearchBoxClear() },
         onNavigateBack = {
@@ -71,10 +58,10 @@ fun SearchBoxPage(navHostController: NavHostController, userSearchViewModel: Sea
 
             items(items = userSearchModelState.users) { user ->
                 UserRow(user = user) {
-                    val argLogin = user.login
-                    Log.e(TAG, "Route: ${NavPath.HomePage.route}?login=$argLogin")
+                    val argUserName = user.login
+                    Log.e(TAG, "Route: ${NavPath.HomePage.route}?repoName=$argUserName")
                     navHostController.navigate(
-                        route = "${NavPath.HomePage.route}?login=${argLogin}"
+                        route = "${NavPath.HomePage.route}?repoName=${argUserName}"
                     )
                 }
             }
@@ -89,7 +76,6 @@ fun SearchBoxPage(navHostController: NavHostController, userSearchViewModel: Sea
 fun UserRow(user: User, onClick: () -> Unit) {
 
         Row(
-            //horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
@@ -109,7 +95,6 @@ fun UserRow(user: User, onClick: () -> Unit) {
                     .height(35.dp)
             )
             Column(
-                //verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.Start,
                 modifier = Modifier
                     .fillMaxWidth()

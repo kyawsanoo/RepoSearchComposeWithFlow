@@ -11,56 +11,64 @@ import kso.repo.search.repository.AppRepository
 import javax.inject.Inject
 
 @HiltViewModel
-class HomePageViewModel @Inject constructor(savedStateHandle: SavedStateHandle, repository: AppRepository):
-    ViewModel(){
+class HomePageViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    val repository: AppRepository
+) :
+    ViewModel() {
 
-    private val TAG: String = "HomePageViewModel"
-    private val login: String = savedStateHandle.get<String>("repo_name").orEmpty()
+    private val tag: String = "HomePageViewModel"
+    private val repoName: String = savedStateHandle.get<String>("repo_name").orEmpty()
+    val searchText: MutableStateFlow<String> = MutableStateFlow(repoName)
 
-    val repoName = MutableStateFlow(login)
+    private val repoListResponseResourceSharedFlow = MutableSharedFlow<Unit>()
 
-    private val responseSharedFlow = MutableSharedFlow<Unit>()
-
+    @Suppress("OPT_IN_IS_NOT_ENABLED")
     @OptIn(ExperimentalCoroutinesApi::class)
-    val responseResource = responseSharedFlow
-        .map { repoName.value }
+    var repoListResponseResource = repoListResponseResourceSharedFlow
+        .map { searchText.value }
         .flatMapLatest { repository.getSearchRepoList(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, Resource.Loading)
 
-    val errorMessage = responseResource.map {
-        when(it.errorMessage.orEmpty().contains("java.net.UnknownHostException")){
-            true -> "Please check your connection and retry"
-            else -> {
-                it.errorMessage.orEmpty()
-            }
-        }
+    init {
+        Log.e(tag, "init");
+        Log.e(tag, "Argument: $repoName")
+        Log.e(tag, "SearchText: ${searchText.value}")
+
+        submit()
+
     }
 
 
-   /* init {
-        Log.e(TAG, "Resume:");
-        Log.e(TAG, "Argument:" + login);
-        viewModelScope.launch {
-            responseSharedFlow.emit(Unit)
-        }
-    }*/
+    private fun submit() {
+        Log.e(tag, "getDefaultRepoList()")
 
-
-    fun onResume() {
-        Log.e(TAG, "onResume:")
-        Log.e(TAG, "Argument: $login")
         viewModelScope.launch {
-            Log.e(TAG, "in ViewModelScope")
-            responseSharedFlow.emit(Unit)
+            Log.e(tag, "in ViewModelScope")
+            repoListResponseResourceSharedFlow.emit(Unit)
         }
     }
 
     fun retry() {
-        Log.e(TAG, "Retry:")
-        viewModelScope.launch {
-            Log.e(TAG, "in ViewModelScope")
-            responseSharedFlow.emit(Unit)
+        Log.e(tag, "Retry:")
+        submit()
+    }
+
+    fun onSearchTextChanged(changedSearchText: String) {
+
+        Log.e(tag, "onSearchTextChanged: keywordt ${searchText.value}")
+        searchText.value = changedSearchText
+        if (changedSearchText.isEmpty()) {
+           return
         }
+        submit()
+
+    }
+
+    fun onSearchBoxClear() {
+        Log.e(tag, "onSearchClear: ")
+        searchText.value = ""
+        submit()
     }
 
 

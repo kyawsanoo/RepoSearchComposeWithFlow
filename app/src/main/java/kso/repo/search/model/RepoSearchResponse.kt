@@ -3,7 +3,7 @@ package kso.repo.search.model
 import com.google.gson.annotations.SerializedName
 
 
-data class SearchResponse(
+data class RepoSearchResponse(
 
     @SerializedName("total_count")
     val totalCount: Int,

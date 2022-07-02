@@ -23,6 +23,7 @@ import kso.repo.search.model.User
 import kso.repo.search.ui.common.ErrorScreen
 import kso.repo.search.ui.common.GithubButton
 import kso.repo.search.ui.common.LoadingScreen
+import kso.repo.search.ui.detail.TitleText
 import kso.repo.search.viewModel.UserDetailPageViewModel
 
 
@@ -36,50 +37,53 @@ fun UserDetailPage(
     val isFail by userDetailViewModel.isFail.collectAsState(initial = true)
     val user by userDetailViewModel.data.collectAsState(initial = User())
 
-    if (isLoading) {
-        LoadingScreen()
-    } else if (isFail) {
-        ErrorScreen("", {})
-    } else {
-        Column(modifier = Modifier.fillMaxSize()) {
-            user?.let {
-                UserDetailTopAppBar(title = "OwnerDetail", onBackClick = {
-                    navHostController.popBackStack()
-                })
+    Scaffold(topBar = {
+        UserDetailTopAppBar(
+            title = "OwnerDetail",
+            onBackClick = {
+            navHostController.popBackStack()
             }
+        )
+    }) {
+        if (isLoading) {
+            LoadingScreen()
+        } else if (isFail) {
+            ErrorScreen("", {})
+        } else {
+            Column(modifier = Modifier.fillMaxSize()) {
 
-            Column(modifier = Modifier.padding(16.dp)) {
-                SubcomposeAsyncImage(
-                    model = user?.avatarUrl,
-                    loading = {
-                        CircularProgressIndicator()
-                    },
-                    contentDescription = stringResource(R.string.icon_img_text),
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .width(55.dp)
-                        .height(55.dp)
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ){
-                    user?.let { Text("Name : ",  fontSize = 13.sp) }
-                    user?.let { Text(it.login, color = Color.Black, fontSize = 13.sp) }
-                }
-                Spacer(modifier = Modifier.height(20.dp))
-                user?.url?.let {
-                    GithubButton(
-                        url = it,
-                        text = "View his profile on Github",
-                        modifier = Modifier.fillMaxWidth()
+                Column(modifier = Modifier.padding(16.dp)) {
+                    SubcomposeAsyncImage(
+                        model = user?.avatarUrl,
+                        loading = {
+                            CircularProgressIndicator()
+                        },
+                        contentDescription = stringResource(R.string.icon_img_text),
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .width(55.dp)
+                            .height(55.dp)
                     )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        user?.let { Text("Name : ", fontSize = 13.sp) }
+                        user?.let { Text(it.login, color = Color.Black, fontSize = 13.sp) }
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+                    user?.url?.let {
+                        GithubButton(
+                            url = it,
+                            text = "View his profile on Github",
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
+
+
             }
-
-
         }
     }
-
 
 }
 

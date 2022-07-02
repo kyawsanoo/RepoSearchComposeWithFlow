@@ -1,15 +1,16 @@
 <resources>
     <string name="app_name">Repo Search</string>
-
     <string name="icon_default_search_text">Search Users</string>
-
     <string name="icn_search_back_content_description">Exit Search View</string>
-
     <string name="icn_search_clear_content_description">Clear Search</string>
-
     <string name="icon_star_text">star icon</string>
     <string name="icon_fork_text">fork icon</string>
     <string name="icn_user_detail_app_bar_back_button">Navigate back</string>
     <string name="icon_error_info_text">Error Info</string>
     <string name="icon_img_text">Image from Url</string>
+    <string name="search_repo">Enter repo name</string>
+    <string name="search_user">Enter user name</string>
+    <string name="no_matched_user_found">No matched users found</string>
+    <string name="no_matched_repo_found">No matched repo found</string>
+    <string name="select_user">Select user</string>
 </resources>

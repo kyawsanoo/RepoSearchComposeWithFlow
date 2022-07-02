@@ -13,15 +13,13 @@ import androidx.navigation.navArgument
 import kso.repo.search.ui.detail.RepoDetailPage
 import kso.repo.search.UserDetailPage
 import kso.repo.search.ui.home.HomePage
-import kso.repo.search.ui.repoSearchBox.RepoSearchBoxPage
-import kso.repo.search.ui.searchBox.SearchBoxPage
+import kso.repo.search.ui.userSearch.SearchBoxPage
 import kso.repo.search.viewModel.*
 
 enum class NavPath(
     val route: String,
 ) {
     HomePage(route = "home_page"),
-    RepoSearchBoxPage(route = "repo_search_box_page"),
     SearchBoxPage(route = "search_box_page"),
     UserDetail(route = "user_detail"),
     RepoDetail(route = "repo_detail")
@@ -55,15 +53,7 @@ fun AppNavHost(navHostController: NavHostController, scaffoldState: ScaffoldStat
             )
         }
 
-        composable(NavPath.RepoSearchBoxPage.route) {
-            val repoSearchViewModel = hiltViewModel<RepoSearchBoxViewModel>()
 
-            RepoSearchBoxPage(
-                navHostController = navHostController,
-                repoSearchViewModel = repoSearchViewModel
-            )
-
-        }
 
         composable(NavPath.SearchBoxPage.route) {
             val userSearchDemoViewModel = hiltViewModel<SearchBoxViewModel>()

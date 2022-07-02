@@ -3,6 +3,7 @@ package kso.repo.search.repository
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kso.repo.search.dataSource.RestDataSource
 import kso.repo.search.model.Repo
 import kso.repo.search.model.Resource
@@ -16,6 +17,7 @@ interface AppRepository{
     fun getRepoList(userName: String): Flow<Resource<List<Repo>>>
     fun getRepoDetail(userName: String, repoName: String): Flow<Resource<Repo>>
     suspend fun getSearchRepoList(s: String): Flow<Resource<List<Repo>>>
+    suspend fun getSearchUserList(s: String): Flow<Resource<List<User>>>
 
 }
 
@@ -73,16 +75,56 @@ class RepoSearchAppRepository @Inject constructor(private val dataSource: RestDa
         emit(resource)
     }
 
-    override suspend fun getSearchRepoList(q: String): Flow<Resource<List<Repo>>> = flow {
-        emit(Resource.Loading)
-        val resource = try {
-            val response = dataSource.searchRepos(q)
-            Log.e("Repository", "Search Repo Size: ${response.items.size}")
-            Resource.Success(response.items)
-        } catch (e: Throwable) {
-            Resource.Fail(e.toString())
+    override suspend fun getSearchRepoList(q: String): Flow<Resource<List<Repo>>> {
+        if(q.isNotEmpty()) {
+            return flow {
+                emit(Resource.Loading)
+                val resource = try {
+                    val response = dataSource.searchRepos(q)
+                    Log.e("Repository", "Search Repo Size: ${response.items.size}")
+                    Resource.Success(response.items)
+                } catch (e: Throwable) {
+                    Log.e("Repository", "error: ${e.toString()}")
+                    val errorMessage = when(e.toString().contains("java.net.UnknownHostException")){
+                        true -> "Please check your connection and retry"
+                        else -> {
+                            e.toString()
+                        }
+                    }
+                    Resource.Fail(errorMessage)
+                }
+                emit(resource)
+            }
+        }else{
+            return flow {
+                val resource = Resource.Success(listOf<Repo>())
+                emit(resource)
+            }
         }
-        emit(resource)
+    }
+
+
+    override suspend fun getSearchUserList(q: String): Flow<Resource<List<User>>> {
+
+            return flow {
+                emit(Resource.Loading)
+                val resource = try {
+                    val response = dataSource.searchUsers(q)
+                    Log.e("Repository", "Search User Size: ${response.items.size}")
+                    Resource.Success(response.items)
+                } catch (e: Throwable) {
+                    Log.e("Repository", "error: ${e.toString()}")
+                    val errorMessage = when(e.toString().contains("java.net.UnknownHostException")){
+                        true -> "Please check your connection and retry"
+                        else -> {
+                            e.toString()
+                        }
+                    }
+                    Resource.Fail(errorMessage)
+                }
+                emit(resource)
+            }
+
     }
 
 

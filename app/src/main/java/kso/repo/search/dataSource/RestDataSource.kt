@@ -2,8 +2,8 @@ package kso.repo.search.dataSource
 
 import kso.repo.search.model.Repo
 import kso.repo.search.model.User
-import kso.repo.search.model.SearchResponse
-import retrofit2.Response
+import kso.repo.search.model.RepoSearchResponse
+import kso.repo.search.model.UserSearchResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -33,8 +33,11 @@ interface RestDataSource {
     @GET("search/repositories")
     suspend fun searchRepos(
         @Query("q") q: String
-    ): SearchResponse
+    ): RepoSearchResponse
 
-
+    @GET("search/users")
+    suspend fun searchUsers(
+        @Query("q") q: String
+    ): UserSearchResponse
 
 }

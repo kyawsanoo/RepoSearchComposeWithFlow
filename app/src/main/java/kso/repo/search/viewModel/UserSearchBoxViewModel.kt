@@ -17,8 +17,6 @@ private const val TAG = "SearchBoxViewModel"
 @HiltViewModel
 class SearchBoxViewModel @Inject constructor(private val userRepository: AppRepository) : ViewModel() {
 
-    private var allUsers: ArrayList<User> = ArrayList<User>()
-
     private val searchText: MutableStateFlow<String> = MutableStateFlow("")
     private var showProgressBar: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private var matchedUsers: MutableStateFlow<List<User>> =  MutableStateFlow(arrayListOf())
@@ -37,27 +35,8 @@ class SearchBoxViewModel @Inject constructor(private val userRepository: AppRepo
     }
 
     init {
-       gitHubUsers()
-    }
-
-    @OptIn(FlowPreview::class)
-    private fun gitHubUsers() {
-
         Log.e(TAG, "init")
-        viewModelScope.launch {
-            showProgressBar.value = true
-            val users: List<User> = userRepository.getUserList()
-                .map {it.data.orEmpty()}//mapping to userList
-                .flatMapConcat { it.asFlow() }
-                .toList()
-            if (users.isNotEmpty()) {
-                allUsers.addAll(users)
-            }
-            showProgressBar.value = false
-        }
-
     }
-
 
     fun onSearchTextChanged(changedSearchText: String) {
 
@@ -67,11 +46,18 @@ class SearchBoxViewModel @Inject constructor(private val userRepository: AppRepo
             matchedUsers.value = arrayListOf()
             return
         }
-        val usersFromSearch = allUsers.filter { x ->
-            x.login.startsWith(changedSearchText, true)
-
+        viewModelScope.launch {
+            showProgressBar.value = true
+            val users: List<User> = userRepository.getSearchUserList(searchText.value)
+                .map {it.data.orEmpty()}//mapping to userList
+                .flatMapConcat { it.asFlow() }
+                .toList()
+            if (users.isNotEmpty()) {
+                matchedUsers.value = users
+            }
+            showProgressBar.value = false
         }
-        matchedUsers.value = usersFromSearch
+
 
     }
 
