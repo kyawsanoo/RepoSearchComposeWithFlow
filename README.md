@@ -3,7 +3,7 @@ A sample Github RepoSearch app using Android Compose as it's UI, Kotlin StateFlo
 
 ## Screenshot
 Watch screen flow in RepoSearch app at [youtube ](https://youtu.be/gTqd15aBa1o).
-repo list|repo search|detail
+repo list|repo search|repo_detail|owner_detail
 :--:|:--:|:--:|:--:
 <img src="images/repo_search.jpg" width="250px" />|<img src="images/keyword_search.jpg" width="250px" />|<img src="images/repo_detail.jpg" width="250px"|<img src="images/owner_detail.jpg" width="250px" />
 
