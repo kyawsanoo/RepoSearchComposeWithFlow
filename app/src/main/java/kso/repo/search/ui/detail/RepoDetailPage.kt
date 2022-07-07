@@ -1,5 +1,8 @@
 package kso.repo.search.ui.detail
 
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -23,24 +27,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.google.gson.Gson
 import kso.repo.search.R
 import kso.repo.search.app.NavPath
 import kso.repo.search.model.Repo
-import kso.repo.search.ui.common.ErrorScreen
 import kso.repo.search.ui.common.ForkIcon
 import kso.repo.search.ui.common.GithubButton
-import kso.repo.search.ui.common.LoadingScreen
 import kso.repo.search.viewModel.RepoDetailPageViewModel
 
+private const val TAG: String = "RepoDetailPage"
+
 @Composable
-    fun RepoDetailPage(navHostController: NavHostController, repoDetailViewModel: RepoDetailPageViewModel) {
+    fun RepoDetailPage(
+            navHostController: NavHostController,
+            repoDetailViewModel: RepoDetailPageViewModel,
+            ) {
 
-        val isLoading by repoDetailViewModel.isLoading.collectAsState(initial = true)
-        val repo by repoDetailViewModel.data.collectAsState(initial = Repo() )
-        val isFail by repoDetailViewModel.isFail.collectAsState(initial = true)
-        val errorMessage by repoDetailViewModel.errorMessage.collectAsState("")
+        val repo by repoDetailViewModel.repo.collectAsState(initial = Repo() )
+        val context = LocalContext.current
 
-        Scaffold(topBar = {
+    Scaffold(topBar = {
             TopAppBar(
                 title = {
                     TitleText(
@@ -59,40 +65,39 @@ import kso.repo.search.viewModel.RepoDetailPageViewModel
                 }
             )
         }) {
-            if (isLoading) {
-                LoadingScreen()
-            } else if (isFail) {
-                ErrorScreen(errorMessage = errorMessage, onRetryClick = {repoDetailViewModel.retry()} )
-            } else {
-                repo?.let {
 
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.SpaceBetween
+            repo.let {
+
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth()
+                            .wrapContentHeight(),
+                        shape = RoundedCornerShape(10.dp),
+                        elevation = 5.dp,
+                        backgroundColor = MaterialTheme.colors.surface
                     ) {
-                        Card(
-                            modifier = Modifier
-                                .padding(10.dp)
-                                .fillMaxWidth()
-                                .wrapContentHeight(),
-                            shape = RoundedCornerShape(10.dp),
-                            elevation = 5.dp,
-                            backgroundColor = MaterialTheme.colors.surface
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.SpaceBetween
-                            ){
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.SpaceBetween
+                        ){
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                it.name,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                style = typography.h4,
-                                //modifier = Modifier.align(Alignment.Center),
-                                textAlign = TextAlign.Center
-                            )
+                            if (it != null) {
+                                it.name?.let { it1 ->
+                                    Text(
+                                        it1,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        style = typography.h4,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
                             Spacer(modifier = Modifier.height(8.dp))
                             Divider(color = Color.LightGray, thickness = 2.dp)
                             Spacer(modifier = Modifier.height(8.dp))
@@ -111,13 +116,12 @@ import kso.repo.search.viewModel.RepoDetailPageViewModel
                                     Icon(
                                         Icons.Filled.Star,
                                         modifier = Modifier
-                                            //.clip(CircleShape)
                                             .width(20.dp)
                                             .height(20.dp),
                                         tint = Color.Blue,
                                         contentDescription = stringResource(id = R.string.icon_star_text)
                                     )
-                                    Text("${repo?.stargazersCount}", fontSize = 13.sp)
+                                    Text("${it?.stargazersCount}", fontSize = 13.sp)
                                 }
 
                                 Row(
@@ -125,7 +129,7 @@ import kso.repo.search.viewModel.RepoDetailPageViewModel
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     ForkIcon()
-                                    Text("${repo?.forksCount}", fontSize = 13.sp,)
+                                    Text("${it?.forksCount}", fontSize = 13.sp,)
                                 }
 
                                 Row(
@@ -133,12 +137,12 @@ import kso.repo.search.viewModel.RepoDetailPageViewModel
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     WatcherIcon()
-                                    Text("${repo?.watchers}", fontSize = 13.sp,)
+                                    Text("${it?.watchers}", fontSize = 13.sp,)
                                 }
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    repo?.language?.let {
+                                    it?.language?.let {
                                         Text(
                                             it,
 
@@ -148,7 +152,7 @@ import kso.repo.search.viewModel.RepoDetailPageViewModel
                                             fontSize = 13.sp,
                                             textAlign = TextAlign.Center,
                                             color = Color.Blue
-                                            )
+                                        )
                                     }
 
                                 }
@@ -167,35 +171,55 @@ import kso.repo.search.viewModel.RepoDetailPageViewModel
                                 }
                             }
                             Spacer(modifier = Modifier.height(5.dp))
-                                Column(
-                                    modifier = Modifier.align(Alignment.End),
+                            Column(
+                                modifier = Modifier.align(Alignment.End),
 
                                 ){
-                                    TextButton(onClick = { navHostController.navigate(route = "${NavPath.UserDetail.route}?login=${repo?.owner?.login}&repoName=${repo?.owner?.login}") }) {
-                                        Row(verticalAlignment = Alignment.CenterVertically){
-                                            Text("Owner: ", color = Color.Black, fontSize = 13.sp, textAlign = TextAlign.Center)
-                                            Text("${repo?.owner?.login}", fontSize = 13.sp, textAlign = TextAlign.Center)
+                                TextButton(
+                                    onClick = {
+                                        val argUser= repo?.owner.toJson()
+                                        Log.e(TAG, "user: $argUser")
+                                        argUser?.let {
+                                            navHostController.navigate(route =
+                                            "${NavPath.UserDetailPage.route}?user=${argUser}")
                                         }
-
+                                    }
+                                )
+                                {
+                                    Row(verticalAlignment = Alignment.CenterVertically){
+                                        Text("Owner: ", color = Color.Black, fontSize = 13.sp, textAlign = TextAlign.Center)
+                                        Text("${it?.owner?.login}", fontSize = 13.sp, textAlign = TextAlign.Center)
                                     }
 
                                 }
-                                Spacer(modifier = Modifier.height(5.dp))
+
+                            }
+                            Spacer(modifier = Modifier.height(5.dp))
                         }
 
-                        }
+                    }
 
-                        Spacer(modifier = Modifier.height(30.dp))
+                    Spacer(modifier = Modifier.height(30.dp))
 
-                        repo?.cloneUrl?.let { urlString -> GithubButton(url = urlString, text="View on Github", modifier = Modifier
+                    it?.cloneUrl?.let {
+                            urlString ->
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(urlString))
+
+                        GithubButton(
+                            onClick = {
+                                Log.e(TAG, "github url: $urlString")
+                                context.startActivity(intent)
+                            },
+                            text="View on Github",
+                            modifier = Modifier
                             .fillMaxWidth()
                             .padding(10.dp)) }
 
 
-                    }
-
                 }
+
             }
+
         }
 
         }
@@ -248,3 +272,7 @@ import kso.repo.search.viewModel.RepoDetailPageViewModel
             }
         )
     }
+
+private   fun <A> A.toJson(): String? {
+    return Gson().toJson(this)
+}

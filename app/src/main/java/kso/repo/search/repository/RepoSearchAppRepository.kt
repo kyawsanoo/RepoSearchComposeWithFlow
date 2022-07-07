@@ -1,134 +1,111 @@
 package kso.repo.search.repository
 
 import android.util.Log
+import androidx.room.withTransaction
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kso.repo.search.dataSource.RestDataSource
+import kso.repo.search.dataSource.api.RestDataSource
+import kso.repo.search.dataSource.db.RepoSearchDatabase
+import kso.repo.search.model.Keyword
 import kso.repo.search.model.Repo
 import kso.repo.search.model.Resource
-import kso.repo.search.model.User
+import kso.repo.search.model.networkBoundResource
 import javax.inject.Inject
 
 interface AppRepository{
 
-    fun getUserList(): Flow<Resource<List<User>>>
-    fun getUser(userName: String): Flow<Resource<User>>
-    fun getRepoList(userName: String): Flow<Resource<List<Repo>>>
-    fun getRepoDetail(userName: String, repoName: String): Flow<Resource<Repo>>
-    suspend fun getSearchRepoList(s: String): Flow<Resource<List<Repo>>>
-    suspend fun getSearchUserList(s: String): Flow<Resource<List<User>>>
+    fun getRepoListNetworkBoundResource(s: String): Flow<Resource<List<Repo>>>
+    fun getKeywordListNetworkBoundResource(s: String): Flow<Resource<List<Keyword>>>
 
 }
 
-class RepoSearchAppRepository @Inject constructor(private val dataSource: RestDataSource): AppRepository {
+class RepoSearchAppRepository @Inject constructor(
+    private val apiDataSource: RestDataSource,
+    private val dbDataSource: RepoSearchDatabase
+    ): AppRepository {
 
-    override fun getUserList(): Flow<Resource<List<User>>> = flow {
-        emit(Resource.Loading)
-        val resource = try {
-            val response = dataSource.getUsers()
-            Resource.Success(response)
-        } catch (e: Throwable) {
-            Resource.Fail(e.toString())
-        }
-        emit(resource)
-    }
+    private val keywordDao = dbDataSource.keywordDao()
+    private val repoDao = dbDataSource.repoDao()
 
-    override fun getUser(
-        userName: String
-    ): Flow<Resource<User>> = flow {
-        emit(Resource.Loading)
-        val resource = try {
-            val response = dataSource.getUser(userName)
-            Resource.Success(response)
-        } catch (e: Throwable) {
+    @OptIn(FlowPreview::class)
+    override fun getRepoListNetworkBoundResource(s: String): Flow<Resource<List<Repo>>>
+    = networkBoundResource(
+        query = {
+            repoDao.getRepos(s)
+        },
+        fetch = {
+            Log.e("Repository", "in fetch(): Repos")
+            val apiRepos = apiDataSource.searchRepos(s).items
+            Log.e("Repository", "all apiRepos size ${apiRepos.size}")
 
-            Resource.Fail(e.toString())
-        }
-        emit(resource)
-    }
+            apiRepos
 
-    override fun getRepoList(
-        userName: String
-    ): Flow<Resource<List<Repo>>> = flow {
-        emit(Resource.Loading)
-        val resource = try {
-            val response = dataSource.getRepoList(userName)
-            Resource.Success(response)
-        } catch (e: Throwable) {
-            Resource.Fail(e.toString())
-        }
-        emit(resource)
-    }
+        },
+        filterFetch = {
+                cachedRepos,  apiRepos ->
+            apiRepos.flatMap {
+                    repos -> cachedRepos.filter {
+                repos.id != it.id
+            }.toList()
+            apiRepos
+          }
+        },
 
-    override fun getRepoDetail(
-        userName: String,
-        repoName: String
-    ): Flow<Resource<Repo>> = flow {
-        emit(Resource.Loading)
-        val resource = try {
-            val response = dataSource.getRepoDetails(userName, repoName)
-            Resource.Success(response)
-        } catch (e: Throwable) {
-            Resource.Fail(e.toString())
-        }
-        emit(resource)
-    }
-
-    override suspend fun getSearchRepoList(q: String): Flow<Resource<List<Repo>>> {
-        if(q.isNotEmpty()) {
-            return flow {
-                emit(Resource.Loading)
-                val resource = try {
-                    val response = dataSource.searchRepos(q)
-                    Log.e("Repository", "Search Repo Size: ${response.items.size}")
-                    Resource.Success(response.items)
-                } catch (e: Throwable) {
-                    Log.e("Repository", "error: ${e.toString()}")
-                    val errorMessage = when(e.toString().contains("java.net.UnknownHostException")){
-                        true -> "Please check your connection and retry"
-                        else -> {
-                            when(e.toString().contains("retrofit2.HttpException: HTTP 403")){
-                                true -> "Not found repo with this name"
-                                else -> e.toString()
-                            }
-                        }
+        saveFetchResult = {
+                repos ->
+                    dbDataSource.withTransaction {
+                        repoDao.insertAll(repos)
                     }
-                    Resource.Fail(errorMessage)
-                }
-                emit(resource)
-            }
-        }else{
-            return flow {
-                val resource = Resource.Success(listOf<Repo>())
-                emit(resource)
-            }
+        },
+
+        shouldFetch = {
+            repos ->
+                //repos.none { repo -> repo.name.compareTo(s, false) ==0 }
+                repos.isEmpty()
         }
-    }
+    )
 
 
-    override suspend fun getSearchUserList(q: String): Flow<Resource<List<User>>> {
-
-            return flow {
-                emit(Resource.Loading)
-                val resource = try {
-                    val response = dataSource.searchUsers(q)
-                    Log.e("Repository", "Search User Size: ${response.items.size}")
-                    Resource.Success(response.items)
-                } catch (e: Throwable) {
-                    Log.e("Repository", "error: ${e.toString()}")
-                    val errorMessage = when(e.toString().contains("java.net.UnknownHostException")){
-                        true -> "Please check your connection and retry"
-                        else -> {
-                            e.toString()
-                        }
-                    }
-                    Resource.Fail(errorMessage)
+    @OptIn(FlowPreview::class)
+    override fun getKeywordListNetworkBoundResource(s: String): Flow<Resource<List<Keyword>>>
+            = networkBoundResource(
+        query = {
+            when(s.isEmpty()){
+                true  ->
+                    keywordDao.getAllKeywords()
+                else -> {
+                    keywordDao.getMatchedKeywords(s)
                 }
-                emit(resource)
             }
 
-    }
+        },
+        fetch = {
+            Log.e("Repository", "in fetch(): Keywords")
+            val apiKeywords = apiDataSource.getAllKeywordList()
+            Log.e("Repository", "all keyword size ${apiKeywords.size}")
 
+            apiKeywords
 
+        },
+        filterFetch = {
+                cachedKeywords,  apiKeywords ->
+            apiKeywords.flatMap {
+                    repos -> cachedKeywords.filter {
+                repos.id != it.id
+            }.toList()
+                apiKeywords
+            }
+        },
+
+        saveFetchResult = {
+                keywords ->
+            dbDataSource.withTransaction {
+                keywordDao.insertAll(keywords)
+            }
+        },
+
+        shouldFetch = {
+                keywords -> keywords.isEmpty()
+        }
+    )
 }

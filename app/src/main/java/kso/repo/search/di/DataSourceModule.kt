@@ -1,10 +1,13 @@
 package kso.repo.search.di
 
+import android.app.Application
+import androidx.room.Room
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import kso.repo.search.dataSource.RestDataSource
+import kso.repo.search.dataSource.api.RestDataSource
+import kso.repo.search.dataSource.db.RepoSearchDatabase
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Named
@@ -31,9 +34,23 @@ class DataSourceModule {
 
     @Singleton
     @Provides
-    fun provideRestDataSource(retrofit: Retrofit):RestDataSource{
+    fun provideRestDataSource(retrofit: Retrofit): RestDataSource {
         return retrofit.create(RestDataSource::class.java)
     }
 
+    @Singleton
+    @Provides
+    fun provideDatabaseDataSource(app: Application) =
+        Room.databaseBuilder(app, RepoSearchDatabase::class.java, "repo_db")
+            .addMigrations()
+            .build()
 
+
+    @Singleton
+    @Provides
+    fun provideRepoDao(database: RepoSearchDatabase) =    database.repoDao()
+
+    @Singleton
+    @Provides
+    fun provideKeywordDao(database: RepoSearchDatabase) =    database.keywordDao()
 }

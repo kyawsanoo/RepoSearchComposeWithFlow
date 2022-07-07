@@ -1,5 +1,8 @@
-package kso.repo.search
+package kso.repo.search.ui.detail
 
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
@@ -8,24 +11,24 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
+import kso.repo.search.R
 import kso.repo.search.model.User
-import kso.repo.search.ui.common.ErrorScreen
 import kso.repo.search.ui.common.GithubButton
-import kso.repo.search.ui.common.LoadingScreen
-import kso.repo.search.ui.detail.TitleText
 import kso.repo.search.viewModel.UserDetailPageViewModel
 
+private const val TAG: String = "RepoDetailPage"
 
 @Composable
 fun UserDetailPage(
@@ -33,9 +36,8 @@ fun UserDetailPage(
     userDetailViewModel: UserDetailPageViewModel
 ) {
 
-    val isLoading by userDetailViewModel.isLoading.collectAsState(initial = true)
-    val isFail by userDetailViewModel.isFail.collectAsState(initial = true)
-    val user by userDetailViewModel.data.collectAsState(initial = User())
+    val user by userDetailViewModel.user.collectAsState(initial = User())
+    val context = LocalContext.current
 
     Scaffold(topBar = {
         UserDetailTopAppBar(
@@ -45,43 +47,42 @@ fun UserDetailPage(
             }
         )
     }) {
-        if (isLoading) {
-            LoadingScreen()
-        } else if (isFail) {
-            ErrorScreen("", {})
-        } else {
-            Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
 
-                Column(modifier = Modifier.padding(16.dp)) {
-                    SubcomposeAsyncImage(
-                        model = user?.avatarUrl,
-                        loading = {
-                            CircularProgressIndicator()
-                        },
-                        contentDescription = stringResource(R.string.icon_img_text),
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .width(55.dp)
-                            .height(55.dp)
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        user?.let { Text("Name : ", fontSize = 13.sp) }
-                        user?.let { Text(it.login, color = Color.Black, fontSize = 13.sp) }
-                    }
-                    Spacer(modifier = Modifier.height(20.dp))
-                    user?.url?.let {
-                        GithubButton(
-                            url = it,
-                            text = "View his profile on Github",
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
+            Column(modifier = Modifier.padding(16.dp)) {
+                SubcomposeAsyncImage(
+                    model = user?.avatarUrl,
+                    loading = {
+                        CircularProgressIndicator()
+                    },
+                    contentDescription = stringResource(R.string.icon_img_text),
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .width(55.dp)
+                        .height(55.dp)
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    user?.let { Text("Name : ", fontSize = 13.sp) }
+                    user?.let { it.login?.let { it1 -> Text(it1, color = Color.Black, fontSize = 13.sp) } }
                 }
+                Spacer(modifier = Modifier.height(20.dp))
+                user?.htmlUrl?.let {
+                    val intent =  Intent(Intent.ACTION_VIEW, Uri.parse(it))
 
-
+                    GithubButton(
+                        onClick = {
+                            Log.e(TAG, "github url: $it")
+                            context.startActivity(intent)
+                        },
+                        text = "View his profile on Github",
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
+
+
         }
     }
 

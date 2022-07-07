@@ -1,7 +1,9 @@
 package kso.repo.search.viewModel
 
 import android.util.Log
-import androidx.lifecycle.*
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -10,31 +12,31 @@ import kso.repo.search.model.Resource
 import kso.repo.search.repository.AppRepository
 import javax.inject.Inject
 
-@HiltViewModel
-class HomePageViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
-    private val repository: AppRepository
-) :
-    ViewModel() {
 
-    private val tag: String = "HomePageViewModel"
-    private val repoName: String = savedStateHandle.get<String>("repo_name").orEmpty()
+@HiltViewModel
+class KeywordSearchPageViewModel @Inject constructor(
+    private val appRepository: AppRepository,
+    savedStateHandle: SavedStateHandle,
+) : ViewModel() {
+
+    private val tag: String = "KeywordPageViewModel"
+    private val repoName: String = savedStateHandle.get<String>("repo").orEmpty()
 
     val searchText: MutableStateFlow<String> = MutableStateFlow(repoName)
 
 
-    private val repoListNBRSharedFlow = MutableSharedFlow<Unit>()
+    private val keywordListShareFlow = MutableSharedFlow<Unit>()
 
     @Suppress("OPT_IN_IS_NOT_ENABLED")
     @OptIn(ExperimentalCoroutinesApi::class)
-    var repoListNBR = repoListNBRSharedFlow
+    var keywordListNBR = keywordListShareFlow
         .map { searchText.value }
-        .flatMapLatest { repository.getRepoListNetworkBoundResource(it)}
+        .flatMapLatest { appRepository.getKeywordListNetworkBoundResource(it)}
         .stateIn(viewModelScope, SharingStarted.Eagerly, Resource.Loading)
 
     init {
 
-        Log.e(tag, "init");
+        Log.e(tag, "init")
         Log.e(tag, "Argument: $repoName")
         Log.e(tag, "SearchText: ${searchText.value}")
 
@@ -44,11 +46,11 @@ class HomePageViewModel @Inject constructor(
 
 
     private fun submit() {
-        Log.e(tag, "fetch RepoList")
+        Log.e(tag, "fetchAllKeywordList()")
 
         viewModelScope.launch {
             Log.e(tag, "in ViewModelScope")
-            repoListNBRSharedFlow.emit(Unit)
+            keywordListShareFlow.emit(Unit)
         }
 
     }
@@ -58,6 +60,18 @@ class HomePageViewModel @Inject constructor(
         submit()
     }
 
+    fun onSearchTextChanged(changedSearchText: String) {
 
+        Log.e(tag, "onSearchTextChanged: keywordt ${searchText.value}")
+        searchText.value = changedSearchText
+        submit()
+
+    }
+
+    fun onSearchBoxClear() {
+        Log.e(tag, "onSearchClear: ")
+        searchText.value = ""
+        submit()
+    }
 
 }

@@ -1,10 +1,11 @@
-package kso.repo.search.ui.userSearch
+package kso.repo.search.ui.keywordSearch
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -29,20 +30,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kso.repo.search.R
+import kso.repo.search.model.Keyword
+import kso.repo.search.ui.common.ErrorScreen
 import kso.repo.search.ui.common.LoadingScreen
 
 
 @ExperimentalAnimationApi
 @ExperimentalComposeUiApi
 @Composable
-fun SearchBoxView(
+fun KeywordSearchBoxView(
     searchText: String,
     placeholderText: String = "",
     onSearchTextChanged: (String) -> Unit = {},
     onClearClick: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
     showProgress: Boolean,
+    errorMessage: String,
     matchesFound: Boolean,
+    onRetryClick: () -> Unit = {},
+    onKeywordClick: () -> Unit = {},
     results: @Composable () -> Unit = {}
 ) {
     Scaffold(topBar = {
@@ -65,28 +71,49 @@ fun SearchBoxView(
                     .background(Color.LightGray),
                     contentAlignment = Alignment.CenterStart
                 ) {
-                    Text(
-                        text = stringResource(id=R.string.select_user),
-                        color = Color.Black,
-                        textAlign = TextAlign.Center,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 10.dp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ){
+                        Text(
+                            text = stringResource(id=R.string.select_keyword) ,
+                            color = Color.Black,
+                            textAlign = TextAlign.Center,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Normal,
+                            modifier = Modifier.padding(horizontal = 10.dp)
 
-                    )
+
+                        )
+                        Text(
+                            text = searchText,
+                            color = Color.Blue,
+                            textAlign = TextAlign.Center,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Normal,
+                            modifier = Modifier.padding(horizontal = 10.dp).clickable(onClick = onKeywordClick)
+
+                        )
+                    }
+
                 }
                 if(showProgress){
                     LoadingScreen()
                 }else {
-                    if (matchesFound) {
-
-
-                        results()
+                    if (errorMessage.isNotEmpty()) {
+                        ErrorScreen(
+                            errorMessage = errorMessage,
+                            onRetryClick = onRetryClick
+                        )
                     } else {
-                        if (searchText.isNotEmpty()) {
-                            NoSearchResults()
-                        }
+                        if (matchesFound) {
+                            results()
+                        } else {
+                            if (searchText.isNotEmpty()) {
+                                NoSearchResults()
+                            }
 
+                        }
                     }
                 }
 
@@ -183,7 +210,7 @@ fun NoSearchResults() {
         horizontalAlignment = CenterHorizontally
     ) {
 
-        Text(stringResource(id = R.string.no_matched_user_found))
+        Text(stringResource(id = R.string.no_matched_keyword_found))
 
     }
 }

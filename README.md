@@ -5,12 +5,12 @@ A sample Github RepoSearch app using Android Compose as it's UI, Kotlin StateFlo
 Watch screen flow in RepoSearch app at [youtube ](https://youtu.be/gTqd15aBa1o).
 repo list|repo search|detail
 :--:|:--:|:--:
-<img src="images/repo_search.jpg" width="250px" />|<img src="images/user_search.jpg" width="250px" />|<img src="images/repo_detail.jpg" width="250px" />
+<img src="images/repo_search.jpg" width="250px" />|<img src="images/keyword_search.jpg" width="250px" />|<img src="images/repo_detail.jpg" width="250px"|<img src="images/owner_detail.jpg" width="250px" />
 
 ## Architecture
 <img src="images/architecture.png" width="250px" />
 
-### SharedFlow usage in repo list
+### SharedFlow usage in HomePage repo list
 Call a ViewModel function, and emit to [MutableSharedFlow](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-mutable-shared-flow/).
 
 After transformed to hot stream with [ViewModelScope](https://developer.android.com/topic/libraries/architecture/coroutines#viewmodelscope), 
@@ -22,17 +22,30 @@ class HomePageViewModel @Inject constructor(savedStateHandle: SavedStateHandle, 
   ViewModel() {
 
   val TAG: String = "HomePageViewModel"
-  private val login: String = savedStateHandle.get<String>("login").orEmpty()
+  private val repoName: String = savedStateHandle.get<String>("repo_name").orEmpty()
 
-  val userName = MutableStateFlow(login)
-  private val responseSharedFlow = MutableSharedFlow<Unit>()
+  val searchText: MutableStateFlow<String> = MutableStateFlow(repoName)
 
+  private val repoListNBRSharedFlow = MutableSharedFlow<Unit>()
+
+  @Suppress("OPT_IN_IS_NOT_ENABLED")
   @OptIn(ExperimentalCoroutinesApi::class)
-  val responseResource = responseSharedFlow
-    .map { userName.value }
-    .flatMapLatest { repository.getRepoList(it) }
+  var repoListNBR = repoListNBRSharedFlow
+    .map { searchText.value }
+    .flatMapLatest { repository.getRepoListNetworkBoundResource(it) }
     .stateIn(viewModelScope, SharingStarted.Eagerly, Resource.Loading)
+
+  init {
+
+    Log.e(tag, "init");
+    Log.e(tag, "Argument: $repoName")
+    Log.e(tag, "SearchText: ${searchText.value}")
+
+    submit()
+
+  }
 }
+
 ```
 
 ```kotlin
@@ -42,78 +55,112 @@ fun HomePage(
   homePageViewModel: HomePageViewModel,
   scaffoldState: ScaffoldState = rememberScaffoldState()
 ) {
-  val userName by homePageViewModel.userName.collectAsStateLifecycleAware(initial = "")
-  val errorMessage by homePageViewModel.errorMessage.collectAsStateLifecycleAware(initial = "")
-  val resource by homePageViewModel.responseResource.collectAsStateLifecycleAware(initial = Resource.Loading)
+  val searchText by homePageViewModel.searchText.collectAsStateLifecycleAware(initial = "")
+  val repoListNBR by homePageViewModel.repoListNBR.collectAsStateLifecycleAware()
+
+  var isLoading = false
+  var errorMessage = ""
+  var repoList: List<Repo> = listOf()
+
+
+  when (repoListNBR) {
+    Resource.Loading -> {
+      Log.e(TAG, "NWBR Loading")
+      isLoading = repoListNBR.isLoading
+    }
+    Resource.Fail("") -> {
+      Log.e(TAG, "NWBR  Fail")
+      errorMessage = repoListNBR.errorMessage.orEmpty()
+    }
+    else -> {
+      Log.e(TAG, "NWBR Success")
+      repoList = repoListNBR.data.orEmpty()
+    }
+  }
 }
 
 ```
 
-### StateFlow usage in Repo Detail 
-Use kotlin coroutines flow with [StateFlow](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-state-flow/).
+### SharedFlow usage in KeywordSearchPage keyword list
+Call a ViewModel function, and emit to [MutableSharedFlow](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-mutable-shared-flow/).
 
-After transformed to hot stream with [ViewModelScope](https://developer.android.com/topic/libraries/architecture/coroutines#viewmodelscope), 
-collect it using normal collectAsState in Composable.
-
+After transformed to hot stream with [ViewModelScope](https://developer.android.com/topic/libraries/architecture/coroutines#viewmodelscope),
+collect safely it with collectAsStateLifecycleAware in Composable View.
 
 ```kotlin
 @HiltViewModel
-class RepoDetailPageViewModel @Inject constructor(
-  private val savedStateHandle: SavedStateHandle,
-  private val userRepository: AppRepository
-) :
-  ViewModel() {
+class KeywordSearchPageViewModel @Inject constructor(
+  private val appRepository: AppRepository,
+  savedStateHandle: SavedStateHandle,
+) : ViewModel() {
 
-  private val login = savedStateHandle.get<String>("login")
-  private val _userName = MutableStateFlow(login!!)
+  private val tag: String = "KeywordPageViewModel"
+  private val repoName: String = savedStateHandle.get<String>("repo").orEmpty()
 
-  private val repoName = savedStateHandle.get<String>("repoName")
-  private val _repoName = MutableStateFlow(repoName!!)
+  val searchText: MutableStateFlow<String> = MutableStateFlow(repoName)
 
-  private val submitEvent = MutableSharedFlow<Unit>()
 
+  private val keywordListShareFlow = MutableSharedFlow<Unit>()
+
+  @Suppress("OPT_IN_IS_NOT_ENABLED")
   @OptIn(ExperimentalCoroutinesApi::class)
-  private val resource = submitEvent
-    .map { _userName.value }
-    .flatMapLatest { userRepository.getRepoDetail(it, _repoName.value) }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, Resource.Loading)}
+  var keywordListNBR = keywordListShareFlow
+    .map { searchText.value }
+    .flatMapLatest { appRepository.getKeywordListNetworkBoundResource(it) }
+    .stateIn(viewModelScope, SharingStarted.Eagerly, Resource.Loading)
+
+  init {
+
+    Log.e(tag, "init")
+    Log.e(tag, "Argument: $repoName")
+    Log.e(tag, "SearchText: ${searchText.value}")
+
+    submit()
+
+  }
+}
+
 
 ```
 ```kotlin
 
 @Composable
-fun RepoDetailPage(navHostController: NavHostController, repoDetailViewModel: RepoDetailPageViewModel) {
+fun KeywordSearchPage(navHostController: NavHostController, keywordSearchPageViewModel: KeywordSearchPageViewModel) {
 
-  val isLoading by repoDetailViewModel.isLoading.collectAsState(initial = true)
-  val repo by repoDetailViewModel.data.collectAsState(initial = Repo())
-  val isFail by repoDetailViewModel.isFail.collectAsState(initial = true)
-  val errorMessage by repoDetailViewModel.errorMessage.collectAsState("")
+  val searchText by keywordSearchPageViewModel.searchText.collectAsStateLifecycleAware(initial = "")
+  val keywordListNBR by keywordSearchPageViewModel.keywordListNBR.collectAsStateLifecycleAware()
 
-  Scaffold(topBar = {
-    RepoDetailAppBar(
-      onBackClick = {
-        navHostController.popBackStack()
+  var isLoading = false
+  var errorMessage = ""
+  var keywordList: List<Keyword> = listOf()
+
+
+  when (keywordListNBR) {
+    Resource.Loading -> {
+      Log.e(TAG, "keywordListNBR Loading")
+      isLoading = keywordListNBR.isLoading
+    }
+    Resource.Fail("") -> {
+      Log.e(TAG, "keywordListNBR  Fail")
+      errorMessage = keywordListNBR.errorMessage.orEmpty()
+    }
+    else -> {
+      Log.e(TAG, "keywordListNBR Success")
+      keywordList = keywordListNBR.data.orEmpty()
+      when (keywordListNBR.data.isNullOrEmpty()) {
+        true -> Log.e(TAG, "keyword list : NullOrEmpty")
+        else -> {
+          Log.e(TAG, "first keyword : ${keywordList.first().name}")
+        }
+
       }
-    )
-  }) {
-    if (isLoading) {
-      LoadingScreen()
-    } else if (isFail) {
-      ErrorScreen(errorMessage = errorMessage, onRetryClick = { repoDetailViewModel.retry() })
-    } else {
-      repo?.let {
-        Card(
-          modifier = Modifier
-            .padding(10.dp)
-            .fillMaxWidth()
-            .wrapContentHeight()
-        )
-      }
+
     }
   }
 }
+
 ```
-### StateFlow usage in Repo Search
+### Using Room and Network Bound Resource for offline cache 
 Use kotlin coroutines flow with [StateFlow](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-state-flow/).
 
 After transformed to hot stream with [ViewModelScope](https://developer.android.com/topic/libraries/architecture/coroutines#viewmodelscope),
@@ -121,56 +168,75 @@ collect it using normal collectAsState in Composable.
 
 
 ```kotlin
-@HiltViewModel
-class SearchBoxViewModel @Inject constructor(private val userRepository: AppRepository) : ViewModel() {
+@TypeConverters(Converters::class)
+@Database(entities = [Repo::class, Keyword::class], version = 1, exportSchema = false)
+abstract class RepoSearchDatabase() : RoomDatabase() {
 
-  private var allUsers: ArrayList<User> = ArrayList<User>()
+  abstract fun repoDao(): RepoDao
 
-  private val searchText: MutableStateFlow<String> = MutableStateFlow("")
-  private var showProgressBar: MutableStateFlow<Boolean> = MutableStateFlow(false)
-  private var matchedUsers: MutableStateFlow<List<User>> = MutableStateFlow(arrayListOf())
+  abstract fun keywordDao(): KeywordDao
 
-  val userSearchModelState = combine(
-    searchText,
-    matchedUsers,
-    showProgressBar
-  ) { text, matchedUsers, showProgress ->
-
-    SearchBoxViewModelState(
-      text,
-      matchedUsers,
-      showProgress
-    )
-  }
 }
-
 
 ```
 ```kotlin
-@ExperimentalComposeUiApi
-@ExperimentalAnimationApi
-@Composable
-fun SearchBoxPage(navHostController: NavHostController, userSearchViewModel: SearchBoxViewModel) {
+@Dao
+interface RepoDao {
 
-  val userSearchModelState by userSearchViewModel.userSearchModelState.collectAsState(initial = SearchBoxViewModelState.Empty)
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun insertAll(repos: List<Repo>)
 
-  SearchBoxView(
-    searchText = userSearchModelState.searchText,
-    placeholderText = "Search user",
-    onSearchTextChanged = { userSearchViewModel.onSearchTextChanged(it) },
-    onClearClick = { userSearchViewModel.onClearClick() },
-    onNavigateBack = {
-      navHostController.popBackStack()
-    },
-    showProgress = userSearchModelState.showProgressBar,
-    matchesFound = userSearchModelState.users.isNotEmpty()
-  ) {
-    LazyColumn(
-      modifier = Modifier.fillMaxWidth(),
-      contentPadding = PaddingValues(5.dp)
-    ) {
-    }
-  }
+  @Query("DELETE FROM Repos")
+  suspend fun deleteAll()
+
+  @Query("SELECT * FROM Repos WHERE name IN (:userNames)")
+  fun getRepos(userNames: String): Flow<List<Repo>>
+}
+
+```
+```kotlin
+class RepoSearchAppRepository @Inject constructor(
+  private val apiDataSource: RestDataSource,
+  private val dbDataSource: RepoSearchDatabase
+): AppRepository {
+
+  private val keywordDao = dbDataSource.keywordDao()
+  private val repoDao = dbDataSource.repoDao()
+
+  @OptIn(FlowPreview::class)
+  override fun getRepoListNetworkBoundResource(s: String): Flow<Resource<List<Repo>>> =
+    networkBoundResource(
+      query = {
+        repoDao.getRepos(s)
+      },
+      fetch = {
+        Log.e("Repository", "in fetch(): Repos")
+        val apiRepos = apiDataSource.searchRepos(s).items
+        Log.e("Repository", "all apiRepos size ${apiRepos.size}")
+
+        apiRepos
+
+      },
+      filterFetch = { cachedRepos, apiRepos ->
+        apiRepos.flatMap { repos ->
+          cachedRepos.filter {
+            repos.id != it.id
+          }.toList()
+          apiRepos
+        }
+      },
+
+      saveFetchResult = { repos ->
+        dbDataSource.withTransaction {
+          repoDao.insertAll(repos)
+        }
+      },
+
+      shouldFetch = { repos ->
+        //repos.none { repo -> repo.name.compareTo(s, false) ==0 }
+        repos.isEmpty()
+      }
+    )
 }
 
 ```
@@ -191,4 +257,5 @@ fun SearchBoxPage(navHostController: NavHostController, userSearchViewModel: Sea
   * [lifecycle aware viewmodel 3](https://proandroiddev.com/how-to-collect-flows-lifecycle-aware-in-jetpack-compose-babd53582d0b)
   * [stateflow-transformations](https://proandroiddev.com/clean-stateflow-transformations-in-kotlin-608f4c7de5ab)
   * [stateflow-vs-sharedflow](https://www.valueof.io/blog/stateflow-vs-sharedflow-jetpack-compose)
+
     

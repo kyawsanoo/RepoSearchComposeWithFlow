@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -38,8 +39,6 @@ import kso.repo.search.ui.common.LoadingScreen
 fun RepoSearchBoxView(
     searchText: String,
     placeholderText: String = "",
-    onSearchTextChanged: (String) -> Unit = {},
-    onClearClick: () -> Unit = {},
     onSearchBarClick: () -> Unit = {},
     showProgress: Boolean,
     errorMessage: String,
@@ -51,8 +50,6 @@ fun RepoSearchBoxView(
         AppBarWithSearchBox(
             searchText,
             placeholderText,
-            onSearchTextChanged,
-            onClearClick,
             onSearchBarClick
         )
     }) {
@@ -62,16 +59,16 @@ fun RepoSearchBoxView(
                     .fillMaxSize()
             ) {
 
-                if(showProgress){
+                if (showProgress) {
                     LoadingScreen()
-                }
-                else {
-                    if(errorMessage.isNotEmpty()){
+                } else {
+                    if (errorMessage.isNotEmpty()) {
                         ErrorScreen(
                             errorMessage = errorMessage,
                             onRetryClick = onRetryClick
                         )
-                    }else {
+                    }
+                    else {
                         if (matchesFound) {
                             results()
                         } else {
@@ -97,95 +94,71 @@ fun RepoSearchBoxView(
 fun AppBarWithSearchBox(
     searchText: String,
     placeholderText: String = "",
-    onSearchTextChanged: (String) -> Unit = {},
-    onClearClick: () -> Unit = {},
     onSearchBarClick: () -> Unit = {}
 ) {
-    var showClearButton by remember { mutableStateOf(false) }
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusRequester = remember { FocusRequester() }
 
     TopAppBar(title = {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                Text(
-                    "Repo Search: ",
-                    fontSize = 13.sp, color = Color.White
-                )
+        Row(
+           verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Repo Search:",
+                fontSize = 13.sp, color = Color.White
+            )
 
-                OutlinedTextField(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentSize(align = Alignment.CenterStart)
-                        .padding(vertical = 4.dp)
-                        .onFocusChanged { focusState ->
-                            showClearButton = (focusState.isFocused)
-                        }
-                        .focusRequester(focusRequester),
+            OutlinedTextField(
+                enabled = false,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentSize(align = Alignment.CenterStart)
+                    .padding(vertical = 4.dp, horizontal = 8.dp)
+                    .clickable(onClick = onSearchBarClick),
 
-                    textStyle = TextStyle(
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colors.primary,
-                        fontWeight = FontWeight.Normal,
-                    ),
-                    value = searchText,
-                    onValueChange = onSearchTextChanged,
-                    placeholder = {
-                        Text(text = placeholderText, color = Color.Gray, fontSize = 13.sp)
-                    },
-                    colors = TextFieldDefaults.textFieldColors(
-                        textColor = MaterialTheme.colors.primaryVariant,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        backgroundColor = Color.White,
-                        cursorColor = MaterialTheme.colors.primaryVariant/*LocalContentColor.current.copy(alpha = LocalContentAlpha.current)*/
-                    ),
-                    trailingIcon = {
-                        AnimatedVisibility(
-                            visible = showClearButton,
-                            enter = fadeIn(),
-                            exit = fadeOut()
-                        ) {
-                            IconButton(onClick = { onClearClick() }) {
-                                Icon(
-                                    imageVector = Icons.Filled.Close,
-                                    tint = MaterialTheme.colors.primaryVariant,
-                                    contentDescription = stringResource(id = R.string.icn_search_clear_content_description)
-                                )
-                            }
+                textStyle = TextStyle(
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colors.primary,
+                    fontWeight = FontWeight.Normal,
+                ),
+                value = searchText,
+                onValueChange = { },
+                placeholder = {
+                    Text(text = placeholderText, color = Color.Gray, fontSize = 13.sp)
+                },
+                colors = TextFieldDefaults.textFieldColors(
+                    textColor = MaterialTheme.colors.primaryVariant,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    backgroundColor = Color.White,
+                    cursorColor = MaterialTheme.colors.primaryVariant
+                ),
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Filled.Search,
+                        tint = MaterialTheme.colors.primaryVariant,
+                        contentDescription = stringResource(id = R.string.icn_search_clear_content_description)
+                    )
+                },
+                maxLines = 1,
+                singleLine = true,
+                shape = MaterialTheme.shapes.small
+            )
 
-                        }
-                    },
-                    maxLines = 1,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = {
-                        keyboardController?.hide()
-                    }),
-                    shape = MaterialTheme.shapes.small
-                )
 
-            }
+        }
 
-        },
+    },
         actions = {
-            IconButton(
+            /*IconButton(
                 modifier = Modifier,
                 onClick = onSearchBarClick) {
                 Icon(
                     Icons.Filled.Search,
                     contentDescription = stringResource(id = R.string.icon_default_search_text)
                 )
-            }
+            }*/
         }
     )
 
-
-    /*LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }*/
 }
 
 

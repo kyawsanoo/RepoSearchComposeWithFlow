@@ -9,8 +9,9 @@
     <string name="icon_error_info_text">Error Info</string>
     <string name="icon_img_text">Image from Url</string>
     <string name="search_repo">Enter repo name</string>
-    <string name="search_user">Enter user name</string>
-    <string name="no_matched_user_found">No matched users found</string>
+    <string name="search_keyword">Enter a keyword</string>
+    <string name="no_matched_keyword_found">No matched keyword found</string>
     <string name="no_matched_repo_found">No matched repo found</string>
-    <string name="select_user">Select user</string>
+    <string name="select_keyword">Select a keyword:  </string>
+    <string name="not_found_repo">Not found repo with this name</string>
 </resources>
