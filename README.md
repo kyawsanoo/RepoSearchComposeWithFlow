@@ -161,10 +161,8 @@ fun KeywordSearchPage(navHostController: NavHostController, keywordSearchPageVie
 
 ```
 ### Using Room and Network Bound Resource for offline cache 
-Use kotlin coroutines flow with [StateFlow](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-state-flow/).
-
-After transformed to hot stream with [ViewModelScope](https://developer.android.com/topic/libraries/architecture/coroutines#viewmodelscope),
-collect it using normal collectAsState in Composable.
+Use Room database for offline storage and cache [Room](https://developer.android.com/training/data-storage/room/accessing-data) together with the help of 
+Network Bound Resource  [Network Bound Resource](https://developer.android.com/topic/libraries/architecture/coroutines#viewmodelscope).
 
 
 ```kotlin
@@ -258,4 +256,6 @@ class RepoSearchAppRepository @Inject constructor(
   * [stateflow-transformations](https://proandroiddev.com/clean-stateflow-transformations-in-kotlin-608f4c7de5ab)
   * [stateflow-vs-sharedflow](https://www.valueof.io/blog/stateflow-vs-sharedflow-jetpack-compose)
 
-    
+
+#### Serve me a coffee and my ethereum wallet is
+  * 0x1e68b09f0A3158a73041a871FeC5037586128873
