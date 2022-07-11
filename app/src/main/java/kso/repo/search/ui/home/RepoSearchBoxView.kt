@@ -1,31 +1,20 @@
 package kso.repo.search.ui.home
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kso.repo.search.R
@@ -38,37 +27,30 @@ import kso.repo.search.ui.common.LoadingScreen
 @Composable
 fun RepoSearchBoxView(
     searchText: String,
-    placeholderText: String = "",
-    onSearchBarClick: () -> Unit = {},
     showProgress: Boolean,
     errorMessage: String,
     onRetryClick: () -> Unit = {},
+    modifier: Modifier,
     matchesFound: Boolean,
+
     results: @Composable () -> Unit = {}
 ) {
-    Scaffold(topBar = {
-        AppBarWithSearchBox(
-            searchText,
-            placeholderText,
-            onSearchBarClick
-        )
-    }) {
-        Box {
+    Box{
             Column(
-                modifier = Modifier
+                modifier = modifier
                     .fillMaxSize()
             ) {
 
                 if (showProgress) {
                     LoadingScreen()
-                } else {
+                }
+                else {
                     if (errorMessage.isNotEmpty()) {
                         ErrorScreen(
                             errorMessage = errorMessage,
                             onRetryClick = onRetryClick
                         )
-                    }
-                    else {
+                    } else {
                         if (matchesFound) {
                             results()
                         } else {
@@ -83,83 +65,10 @@ fun RepoSearchBoxView(
             }
 
         }
-    }
+
 
 }
 
-
-@ExperimentalAnimationApi
-@ExperimentalComposeUiApi
-@Composable
-fun AppBarWithSearchBox(
-    searchText: String,
-    placeholderText: String = "",
-    onSearchBarClick: () -> Unit = {}
-) {
-
-    TopAppBar(title = {
-        Row(
-           verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                "Repo Search:",
-                fontSize = 13.sp, color = Color.White
-            )
-
-            OutlinedTextField(
-                enabled = false,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentSize(align = Alignment.CenterStart)
-                    .padding(vertical = 4.dp, horizontal = 8.dp)
-                    .clickable(onClick = onSearchBarClick),
-
-                textStyle = TextStyle(
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colors.primary,
-                    fontWeight = FontWeight.Normal,
-                ),
-                value = searchText,
-                onValueChange = { },
-                placeholder = {
-                    Text(text = placeholderText, color = Color.Gray, fontSize = 13.sp)
-                },
-                colors = TextFieldDefaults.textFieldColors(
-                    textColor = MaterialTheme.colors.primaryVariant,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    backgroundColor = Color.White,
-                    cursorColor = MaterialTheme.colors.primaryVariant
-                ),
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Filled.Search,
-                        tint = MaterialTheme.colors.primaryVariant,
-                        contentDescription = stringResource(id = R.string.icn_search_clear_content_description)
-                    )
-                },
-                maxLines = 1,
-                singleLine = true,
-                shape = MaterialTheme.shapes.small
-            )
-
-
-        }
-
-    },
-        actions = {
-            /*IconButton(
-                modifier = Modifier,
-                onClick = onSearchBarClick) {
-                Icon(
-                    Icons.Filled.Search,
-                    contentDescription = stringResource(id = R.string.icon_default_search_text)
-                )
-            }*/
-        }
-    )
-
-}
 
 
 @Composable

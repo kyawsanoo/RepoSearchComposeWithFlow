@@ -7,18 +7,20 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -26,11 +28,14 @@ import coil.compose.SubcomposeAsyncImage
 import com.google.gson.Gson
 import kso.repo.search.R
 import kso.repo.search.app.NavPath
+import kso.repo.search.app.NetworkStatus
 import kso.repo.search.app.collectAsStateLifecycleAware
 import kso.repo.search.model.Repo
 import kso.repo.search.model.Resource
+import kso.repo.search.ui.common.NetworkAlertScreen
 import kso.repo.search.ui.common.SpannableText
 import kso.repo.search.viewModel.HomePageViewModel
+import kso.repo.search.viewModel.NetworkConnectionState
 
 private const val TAG: String = "HomePage"
 
@@ -42,10 +47,11 @@ fun HomePage(
 ) {
     val searchText by homePageViewModel.searchText.collectAsStateLifecycleAware(initial = "")
     val repoListNBR by homePageViewModel.repoListNBR.collectAsStateLifecycleAware()
-
+    val networkState by homePageViewModel.changedNetworkStatus.collectAsStateLifecycleAware(initial = NetworkStatus.Available)
     var isLoading = false
     var errorMessage = ""
     var repoList: List<Repo> = listOf()
+    var isConnected: Boolean
 
 
     when (repoListNBR) {
@@ -62,44 +68,152 @@ fun HomePage(
             repoList = repoListNBR.data.orEmpty()
         }
     }
-    RepoSearchBoxView(
-        searchText = searchText,
-        placeholderText = stringResource(id = R.string.search_repo),
-        onSearchBarClick = {
-            navHostController.navigate(
-                route = NavPath.KeywordSearchPage.route
-            )
-        },
-        showProgress = isLoading,
-        errorMessage = errorMessage,
-        onRetryClick = {
-            homePageViewModel.retry()
-        },
-        matchesFound = repoList.isNotEmpty()
-    ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(5.dp)
+    Scaffold(topBar = {
+        AppBarWithSearchBox(
+            searchText,
+            stringResource(id = R.string.search_repo),
         ) {
+            navHostController.navigate(
+                route = NavPath.KeywordSearchPage.route,
+            )
+        }
+    }) {
+            paddingValues ->
 
-            items(items = repoList) { repo ->
-                RepoRow(repo = repo) {
-                    val argRepo = repo.toJson()
-                    Log.e(TAG, "repo: $argRepo")
-                    argRepo?.let {
-                        navHostController.navigate(
-                            route =
-                            "${NavPath.RepoDetailPage.route}?repo=${argRepo}"
-                        )
-                    }
-
-                }
+        isConnected = when (networkState) {
+            NetworkConnectionState.Fetched -> {
+                Log.e(TAG, "Network Status: Fetched")
+                homePageViewModel.submit()
+                true
+            }
+            else -> {
+                Log.e(TAG, "Network Status: Error")
+                false
             }
         }
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            NetworkAlertScreen(
+
+                errorMessage = when (isConnected) {
+                    true -> {
+                        stringResource(
+                            id = R.string.connected
+                        )
+                    }
+                    else -> {
+                        stringResource(
+                            id = R.string.not_connected
+                        )
+                    }
+                }
+            )
+            RepoSearchBoxView(
+                searchText = searchText,
+                showProgress = isLoading,
+                errorMessage = errorMessage,
+                onRetryClick = {
+                    homePageViewModel.retry()
+                },
+                modifier = Modifier.padding(paddingValues),
+                matchesFound = repoList.isNotEmpty()
+            ) {
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(5.dp)
+                ) {
+
+                    items(items = repoList) { repo ->
+                        RepoRow(repo = repo) {
+                            val argRepo = repo.toJson()
+                            Log.e(TAG, "repo: $argRepo")
+                            argRepo?.let {
+                                navHostController.navigate(
+                                    route =
+                                    "${NavPath.RepoDetailPage.route}?repo=${argRepo}"
+                                )
+                            }
+
+                        }
+                    }
+                }
+
+
+            }
+        }
+
     }
 
 
 }
+
+@ExperimentalAnimationApi
+@ExperimentalComposeUiApi
+@Composable
+fun AppBarWithSearchBox(
+    searchText: String,
+    placeholderText: String = "",
+    onSearchBarClick: () -> Unit = {}
+) {
+
+    TopAppBar(title = {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Repo Search:",
+                fontSize = 13.sp, color = Color.White
+            )
+
+            OutlinedTextField(
+                enabled = false,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentSize(align = Alignment.CenterStart)
+                    .padding(vertical = 4.dp, horizontal = 8.dp)
+                    .clickable(onClick = onSearchBarClick),
+
+                textStyle = TextStyle(
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colors.primary,
+                    fontWeight = FontWeight.Normal,
+                ),
+                value = searchText,
+                onValueChange = { },
+                placeholder = {
+                    Text(text = placeholderText, color = Color.Gray, fontSize = 13.sp)
+                },
+                colors = TextFieldDefaults.textFieldColors(
+                    textColor = MaterialTheme.colors.primaryVariant,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    backgroundColor = Color.White,
+                    cursorColor = MaterialTheme.colors.primaryVariant
+                ),
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Filled.Search,
+                        tint = MaterialTheme.colors.primaryVariant,
+                        contentDescription = stringResource(id = R.string.icn_search_clear_content_description)
+                    )
+                },
+                maxLines = 1,
+                singleLine = true,
+                shape = MaterialTheme.shapes.small
+            )
+
+
+        }
+
+    })
+
+}
+
 
 @Composable
 fun RepoRow(repo: Repo, onClick: () -> Unit) {

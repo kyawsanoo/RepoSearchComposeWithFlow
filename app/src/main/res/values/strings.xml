@@ -14,4 +14,7 @@
     <string name="no_matched_repo_found">No matched repo found</string>
     <string name="select_keyword">Select a keyword:  </string>
     <string name="not_found_repo">Not found repo with this name</string>
+    <string name="network_connection_status">Connection Status: </string>
+    <string name="connected">Connected </string>
+    <string name="not_connected">Not Connected </string>
 </resources>
