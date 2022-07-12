@@ -47,11 +47,10 @@ fun HomePage(
 ) {
     val searchText by homePageViewModel.searchText.collectAsStateLifecycleAware(initial = "")
     val repoListNBR by homePageViewModel.repoListNBR.collectAsStateLifecycleAware()
-    val networkState by homePageViewModel.changedNetworkStatus.collectAsStateLifecycleAware(initial = NetworkStatus.Available)
+    val isConnected by homePageViewModel.isConnected.collectAsStateLifecycleAware(initial = NetworkStatus.Available)
     var isLoading = false
     var errorMessage = ""
     var repoList: List<Repo> = listOf()
-    var isConnected: Boolean
 
 
     when (repoListNBR) {
@@ -80,17 +79,7 @@ fun HomePage(
     }) {
             paddingValues ->
 
-        isConnected = when (networkState) {
-            NetworkConnectionState.Fetched -> {
-                Log.e(TAG, "Network Status: Fetched")
-                homePageViewModel.submit()
-                true
-            }
-            else -> {
-                Log.e(TAG, "Network Status: Error")
-                false
-            }
-        }
+
 
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp),

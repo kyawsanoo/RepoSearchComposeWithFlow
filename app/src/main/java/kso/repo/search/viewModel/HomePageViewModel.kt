@@ -19,7 +19,7 @@ import javax.inject.Inject
 class HomePageViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: AppRepository,
-    networkStatusDetector: NetworkStatusDetector
+    private val networkStatusDetector: NetworkStatusDetector
 ) :
     ViewModel() {
 
@@ -39,12 +39,14 @@ class HomePageViewModel @Inject constructor(
 
 
     @OptIn(FlowPreview::class)
-    val changedNetworkStatus =
+    public val networkState =
         networkStatusDetector.networkStatus
             .map (
                 onAvailable = { NetworkConnectionState.Fetched },
                 onUnavailable = { NetworkConnectionState.Error },
             )
+
+    val isConnected: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     init {
 
@@ -57,13 +59,28 @@ class HomePageViewModel @Inject constructor(
     }
 
 
+    @OptIn(FlowPreview::class)
     fun submit() {
         Log.e(tag, "fetch RepoList")
 
         viewModelScope.launch {
             Log.e(tag, "in ViewModelScope")
-
             repoListNBRSharedFlow.emit(Unit)
+
+            networkState.collect{
+                        networkState ->
+                isConnected.value = when (networkState) {
+                    NetworkConnectionState.Fetched -> {
+                        Log.e(tag, "Network Status: Fetched")
+                        true
+                    }
+                    else -> {
+                        Log.e(tag, "Network Status: Error")
+                        false
+                    }
+                }
+            }
+
         }
 
     }

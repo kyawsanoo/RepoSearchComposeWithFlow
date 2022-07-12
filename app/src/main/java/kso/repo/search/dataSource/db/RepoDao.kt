@@ -16,6 +16,9 @@ interface RepoDao {
     @Query("DELETE FROM Repos")
     suspend fun deleteAll()
 
-    @Query("SELECT * FROM Repos WHERE name IN (:userNames)")
-    fun getRepos(userNames: String): Flow<List<Repo>>
+    @Query("SELECT * FROM Repos WHERE name IN (:repoNames)")
+    fun getRepos(repoNames: String): Flow<List<Repo>>
+
+    @Query("SELECT * FROM Repos WHERE name LIKE '%' || (:repoName) || '%'")
+    fun getFilteredRepos(repoName: String?): Flow<List<Repo>>
 }
