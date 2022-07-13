@@ -1,21 +1,16 @@
 package kso.repo.search.repository
 
+import android.content.Context
 import android.util.Log
 import androidx.room.withTransaction
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
-import kso.repo.search.app.NetworkStatusDetector
-import kso.repo.search.app.map
+import kso.repo.search.app.CurrentNetworkStatus
 import kso.repo.search.dataSource.api.RestDataSource
 import kso.repo.search.dataSource.db.RepoSearchDatabase
 import kso.repo.search.model.Keyword
 import kso.repo.search.model.Repo
 import kso.repo.search.model.Resource
 import kso.repo.search.model.networkBoundResource
-import kso.repo.search.viewModel.NetworkConnectionState
 import javax.inject.Inject
 
 interface AppRepository{
@@ -28,14 +23,12 @@ interface AppRepository{
 class RepoSearchAppRepository @Inject constructor(
     private val apiDataSource: RestDataSource,
     private val dbDataSource: RepoSearchDatabase,
-    private val networkStatusDetector: NetworkStatusDetector
+    private val appContext: Context
     ): AppRepository {
 
     private val keywordDao = dbDataSource.keywordDao()
     private val repoDao = dbDataSource.repoDao()
-    private var isConnected = false
 
-    @OptIn(FlowPreview::class, DelicateCoroutinesApi::class)
     override fun getRepoListNetworkBoundResource(s: String): Flow<Resource<List<Repo>>> {
 
         return networkBoundResource(
@@ -87,25 +80,7 @@ class RepoSearchAppRepository @Inject constructor(
 
             shouldFetch = {
                 Log.e("Repository", "in shouldFetch()")
-                GlobalScope.launch {
-
-                    networkStatusDetector.networkStatus.map(
-                        onAvailable = { NetworkConnectionState.Fetched },
-                        onUnavailable = { NetworkConnectionState.Error },
-                    ).collect { networkState ->
-                        isConnected = when (networkState) {
-                            NetworkConnectionState.Fetched -> {
-                                Log.e("NetworkStatusDetector", "Network Status: Fetched")
-                                true
-                            }
-                            else -> {
-                                Log.e("NetworkStatusDetector", "Network Status: Error")
-                                false
-                            }
-                        }
-                    }
-                }
-                isConnected
+                CurrentNetworkStatus.getNetwork(appContext)
             }
 
 
@@ -113,7 +88,6 @@ class RepoSearchAppRepository @Inject constructor(
     }
 
 
-    @OptIn(FlowPreview::class, DelicateCoroutinesApi::class)
     override fun getKeywordListNetworkBoundResource(s: String): Flow<Resource<List<Keyword>>>
             = networkBoundResource(
 
@@ -160,25 +134,7 @@ class RepoSearchAppRepository @Inject constructor(
         shouldFetch = {
 
             Log.e("Repository", "in shouldFetch()")
-            GlobalScope.launch {
-
-                networkStatusDetector.networkStatus.map(
-                    onAvailable = { NetworkConnectionState.Fetched },
-                    onUnavailable = { NetworkConnectionState.Error },
-                ).collect { networkState ->
-                    isConnected = when (networkState) {
-                        NetworkConnectionState.Fetched -> {
-                            Log.e("NetworkStatusDetector", "Network Status: Fetched")
-                            true
-                        }
-                        else -> {
-                            Log.e("NetworkStatusDetector", "Network Status: Error")
-                            false
-                        }
-                    }
-                }
-            }
-            isConnected
+            CurrentNetworkStatus.getNetwork(appContext)
         }
 
     )
