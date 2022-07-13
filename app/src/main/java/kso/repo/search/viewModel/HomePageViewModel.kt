@@ -33,7 +33,9 @@ class HomePageViewModel @Inject constructor(
     @Suppress("OPT_IN_IS_NOT_ENABLED")
     @OptIn(ExperimentalCoroutinesApi::class)
     var repoListNBR = repoListNBRSharedFlow
-        .map { searchText.value }
+        .map {
+            searchText.value
+        }
         .flatMapLatest { repository.getRepoListNetworkBoundResource(it)}
         .stateIn(viewModelScope, SharingStarted.Eagerly, Resource.Loading)
 
@@ -47,6 +49,7 @@ class HomePageViewModel @Inject constructor(
             )
 
     val isConnected: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isRefreshing: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     init {
 
@@ -88,6 +91,18 @@ class HomePageViewModel @Inject constructor(
     fun retry() {
         Log.e(tag, "Retry:")
         submit()
+    }
+
+    fun refresh(){
+        Log.e(tag, "Refresh:")
+        isRefreshing.value = true
+        submit()
+        isRefreshing.value = false
+    }
+
+    fun onDoneCollectResource(){
+        Log.e(tag, "onDoneCollectResource()")
+        isRefreshing.value = false
     }
 
 }

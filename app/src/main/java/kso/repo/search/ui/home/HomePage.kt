@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.gson.Gson
 import kso.repo.search.R
 import kso.repo.search.app.NavPath
@@ -48,6 +50,7 @@ fun HomePage(
     val searchText by homePageViewModel.searchText.collectAsStateLifecycleAware(initial = "")
     val repoListNBR by homePageViewModel.repoListNBR.collectAsStateLifecycleAware()
     val isConnected by homePageViewModel.isConnected.collectAsStateLifecycleAware(initial = NetworkStatus.Available)
+    val isRefreshing by homePageViewModel.isRefreshing.collectAsStateLifecycleAware()
     var isLoading = false
     var errorMessage = ""
     var repoList: List<Repo> = listOf()
@@ -65,6 +68,7 @@ fun HomePage(
         else -> {
             Log.e(TAG, "NWBR Success")
             repoList = repoListNBR.data.orEmpty()
+            homePageViewModel.onDoneCollectResource()
         }
     }
     Scaffold(topBar = {
@@ -112,25 +116,31 @@ fun HomePage(
                 matchesFound = repoList.isNotEmpty()
             ) {
 
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(5.dp)
+                SwipeRefresh(
+                    state = rememberSwipeRefreshState(isRefreshing),
+                    onRefresh = { homePageViewModel.refresh() }
                 ) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(5.dp)
+                    ) {
 
-                    items(items = repoList) { repo ->
-                        RepoRow(repo = repo) {
-                            val argRepo = repo.toJson()
-                            Log.e(TAG, "repo: $argRepo")
-                            argRepo?.let {
-                                navHostController.navigate(
-                                    route =
-                                    "${NavPath.RepoDetailPage.route}?repo=${argRepo}"
-                                )
+                        items(items = repoList) { repo ->
+                            RepoRow(repo = repo) {
+                                val argRepo = repo.toJson()
+                                Log.e(TAG, "repo: $argRepo")
+                                argRepo?.let {
+                                    navHostController.navigate(
+                                        route =
+                                        "${NavPath.RepoDetailPage.route}?repo=${argRepo}"
+                                    )
+                                }
+
                             }
-
                         }
                     }
                 }
+
 
 
             }

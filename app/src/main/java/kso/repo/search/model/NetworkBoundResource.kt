@@ -14,7 +14,7 @@ inline fun <ResultType, RequestType> networkBoundResource(
 
     crossinline saveFetchResult: suspend (RequestType) -> Unit,
 
-    crossinline shouldFetch: suspend () -> Boolean = { false },
+    crossinline shouldFetch: () -> Boolean = { false },
 
 
     ) = flow {
