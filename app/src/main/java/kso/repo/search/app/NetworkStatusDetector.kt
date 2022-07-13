@@ -18,7 +18,7 @@ sealed class NetworkStatus {
 }
 
 @Singleton
-class NetworkStatusDetector @Inject constructor(val context: Context) {
+class NetworkStatusDetector @Inject constructor(context: Context) {
 
     private val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
