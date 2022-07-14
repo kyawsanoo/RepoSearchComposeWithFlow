@@ -27,7 +27,7 @@ import kso.repo.search.model.Owner
 import kso.repo.search.ui.common.GithubButton
 import kso.repo.search.viewModel.UserDetailPageViewModel
 
-private const val TAG: String = "RepoDetailPage"
+private const val TAG: String = "UserDetailPage"
 
 @Composable
 fun UserDetailPage(
@@ -47,9 +47,9 @@ fun UserDetailPage(
         )
     }) {
         paddingValues ->
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
 
-            Column(modifier = Modifier.padding(paddingValues)) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 SubcomposeAsyncImage(
                     model = owner?.avatarUrl,
                     loading = {

@@ -110,7 +110,7 @@ fun RepoDetailPage(
                     onRefresh = { repoDetailViewModel.refresh() }
                 ) {
                     Column(
-                        modifier = Modifier.padding(paddingValues),
+                        modifier = Modifier.padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
