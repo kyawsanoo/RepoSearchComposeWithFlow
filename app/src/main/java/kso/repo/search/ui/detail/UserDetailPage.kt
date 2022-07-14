@@ -11,7 +11,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,7 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
 import kso.repo.search.R
-import kso.repo.search.model.User
+import kso.repo.search.model.Owner
 import kso.repo.search.ui.common.GithubButton
 import kso.repo.search.viewModel.UserDetailPageViewModel
 
@@ -36,7 +35,7 @@ fun UserDetailPage(
     userDetailViewModel: UserDetailPageViewModel
 ) {
 
-    val user by userDetailViewModel.user.collectAsState(initial = User())
+    val owner by userDetailViewModel.user.collectAsState(initial = Owner())
     val context = LocalContext.current
 
     Scaffold(topBar = {
@@ -47,11 +46,12 @@ fun UserDetailPage(
             }
         )
     }) {
+        paddingValues ->
         Column(modifier = Modifier.fillMaxSize()) {
 
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(paddingValues)) {
                 SubcomposeAsyncImage(
-                    model = user?.avatarUrl,
+                    model = owner?.avatarUrl,
                     loading = {
                         CircularProgressIndicator()
                     },
@@ -64,11 +64,11 @@ fun UserDetailPage(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    user?.let { Text("Name : ", fontSize = 13.sp) }
-                    user?.let { it.login?.let { it1 -> Text(it1, color = Color.Black, fontSize = 13.sp) } }
+                    owner?.let { Text("Name : ", fontSize = 13.sp) }
+                    owner?.let { it.login?.let { it1 -> Text(it1, color = Color.Black, fontSize = 13.sp) } }
                 }
                 Spacer(modifier = Modifier.height(20.dp))
-                user?.htmlUrl?.let {
+                owner?.ownerHtmlUrl?.let {
                     val intent =  Intent(Intent.ACTION_VIEW, Uri.parse(it))
 
                     GithubButton(

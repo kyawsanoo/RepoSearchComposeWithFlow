@@ -5,12 +5,12 @@ import kotlinx.coroutines.flow.*
 import retrofit2.Response
 import java.lang.Exception
 
-inline fun <ApiResponse, ResultType, RequestType> networkBoundResource(
+inline fun <ApiResponse, ResultType, RequestType> repoDetailNetworkBoundResource(
 
     // Fetches response
     crossinline fetchRemote: suspend () -> Response<ApiResponse>,
 
-    // Extracts data from remote response (ex.: response.body()!! or response.body()!!.items)
+    // Extracts data from remote response (ex.: response.body()!!)
     crossinline getDataFromResponse: suspend (response: Response<ApiResponse>) -> RequestType,
 
     // Saves remote data to local db

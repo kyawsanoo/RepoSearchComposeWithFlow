@@ -1,10 +1,12 @@
 package kso.repo.search.model
 
 import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 
-@Entity(tableName = "repos")
+@Entity(tableName = "Repo", indices = [Index("id")])
 data class Repo(
 
     @PrimaryKey(autoGenerate = false)
@@ -17,8 +19,8 @@ data class Repo(
     @SerializedName("full_name")
     val fullName: String? = "",
 
-    @SerializedName("owner")
-    val owner: User? = null,
+    /*@SerializedName("owner")
+    val owner: User? = null,*/
 
     @SerializedName("html_url")
     val htmlUrl: String? = "",
@@ -59,6 +61,7 @@ data class Repo(
     @SerializedName("stargazers_count")
     val stargazersCount: Int = 0,
 
+
   /*
     @SerializedName("created_at")
     val createdAt: Date,
@@ -85,4 +88,8 @@ data class Repo(
     @SerializedName("has_pages")
     val hasPages: Boolean,
     */
-)
+){
+    @Ignore
+    @SerializedName("owner")
+    lateinit var owner: Owner
+}

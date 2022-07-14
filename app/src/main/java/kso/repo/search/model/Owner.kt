@@ -1,16 +1,17 @@
 package kso.repo.search.model
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 
 
-@Entity(tableName = "users")
-data class User(
+@Entity(tableName = "Owner", indices = [Index("repoId")])
+data class Owner(
 
     @PrimaryKey(autoGenerate = false)
     @SerializedName("id")
-    val id: Long? = null,
+    val ownerId: Long? = null,
 
     @SerializedName("login")
     val login: String? = "",
@@ -22,10 +23,10 @@ data class User(
     val gravatarId: String? = "",
 
     @SerializedName("url")
-    val url: String? = "",
+    val ownerUrl: String? = "",
 
     @SerializedName("html_url")
-    val htmlUrl: String? = "",
+    val ownerHtmlUrl: String? = "",
 
     @SerializedName("followers_url")
     val followersUrl: String? = "",
@@ -56,4 +57,7 @@ data class User(
 
     @SerializedName("type")
     val type: String? = "",
+
+    var repoId: Long? = 0L
+
 )

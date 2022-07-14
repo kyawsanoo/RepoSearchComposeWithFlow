@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kso.repo.search.model.User
+import kso.repo.search.model.Owner
 import javax.inject.Inject
 
 @HiltViewModel
@@ -16,8 +16,8 @@ class UserDetailPageViewModel @Inject constructor(
     ViewModel() {
 
     private val jsonString = savedStateHandle.get<String>("user")
-    private val argUser = jsonString?.fromJson(User::class.java)
-    val user = MutableStateFlow(argUser)
+    private val argOwner = jsonString?.fromJson(Owner::class.java)
+    val user = MutableStateFlow(argOwner)
     private val tag: String = "UserDetailViewModel"
 
     init {

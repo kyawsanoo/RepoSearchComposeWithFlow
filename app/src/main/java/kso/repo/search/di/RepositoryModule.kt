@@ -1,15 +1,10 @@
 package kso.repo.search.di
 
-import android.content.Context
 import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kso.repo.search.dataSource.db.RepoSearchDatabase
-import kso.repo.search.repository.RepoSearchAppRepository
-import kso.repo.search.repository.AppRepository
+import kso.repo.search.repository.*
 import javax.inject.Singleton
 
 @Module
@@ -18,8 +13,14 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun repoSearchAppRepository(repo:RepoSearchAppRepository) : AppRepository
+    abstract fun repoSearchRepository(repo:RepoSearchRepository) : RepoSearchBaseRepository
 
+    @Binds
+    @Singleton
+    abstract fun repoDetailRepository(repo: RepoDetailRepository) : RepoDetailBaseRepository
 
+    @Binds
+    @Singleton
+    abstract fun keywordSearchRepository(repo:KeywordSearchRepository) : KeywordSearchBaseRepository
 
 }

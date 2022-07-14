@@ -9,13 +9,13 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kso.repo.search.model.Resource
-import kso.repo.search.repository.AppRepository
+import kso.repo.search.repository.KeywordSearchBaseRepository
 import javax.inject.Inject
 
 
 @HiltViewModel
 class KeywordSearchPageViewModel @Inject constructor(
-    private val appRepository: AppRepository,
+    private val appRepository: KeywordSearchBaseRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 

@@ -43,7 +43,7 @@ class DataSourceModule {
     @Singleton
     @Provides
     fun provideDatabaseDataSource(app: Application) =
-        Room.databaseBuilder(app, RepoSearchDatabase::class.java, "repo_db")
+        Room.databaseBuilder(app, RepoSearchDatabase::class.java, "Repo_DB")
             .addMigrations()
             .build()
 
@@ -51,6 +51,14 @@ class DataSourceModule {
     @Singleton
     @Provides
     fun provideRepoDao(database: RepoSearchDatabase) =    database.repoDao()
+
+    @Singleton
+    @Provides
+    fun provideOwnerDao(database: RepoSearchDatabase) =    database.ownerDao()
+
+    @Singleton
+    @Provides
+    fun provideRepoDetailDao(database: RepoSearchDatabase) =    database.repoDetailDao()
 
     @Singleton
     @Provides

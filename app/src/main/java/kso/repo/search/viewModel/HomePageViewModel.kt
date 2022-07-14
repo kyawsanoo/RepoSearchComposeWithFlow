@@ -12,13 +12,13 @@ import kotlinx.coroutines.launch
 import kso.repo.search.app.NetworkStatusDetector
 import kso.repo.search.app.map
 import kso.repo.search.model.Resource
-import kso.repo.search.repository.AppRepository
+import kso.repo.search.repository.RepoSearchBaseRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class HomePageViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val repository: AppRepository,
+    private val repository: RepoSearchBaseRepository,
     private val networkStatusDetector: NetworkStatusDetector
 ) :
     ViewModel() {
@@ -28,7 +28,7 @@ class HomePageViewModel @Inject constructor(
 
     val searchText: MutableStateFlow<String> = MutableStateFlow(repoName)
 
-    private var repoListNBRSharedFlow = MutableSharedFlow<Unit>()
+    var repoListNBRSharedFlow = MutableSharedFlow<Unit>()
 
     @Suppress("OPT_IN_IS_NOT_ENABLED")
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -97,7 +97,6 @@ class HomePageViewModel @Inject constructor(
         Log.e(tag, "Refresh:")
         isRefreshing.value = true
         submit()
-        isRefreshing.value = false
     }
 
     fun onDoneCollectResource(){

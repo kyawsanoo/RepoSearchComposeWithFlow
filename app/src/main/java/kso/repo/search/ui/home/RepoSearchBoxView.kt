@@ -22,8 +22,6 @@ import kso.repo.search.ui.common.ErrorScreen
 import kso.repo.search.ui.common.LoadingScreen
 
 
-@ExperimentalAnimationApi
-@ExperimentalComposeUiApi
 @Composable
 fun RepoSearchBoxView(
     searchText: String,
