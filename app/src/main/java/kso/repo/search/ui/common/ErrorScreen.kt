@@ -21,7 +21,7 @@ import kso.repo.search.R
 fun ErrorScreen(errorMessage: String, onRetryClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .padding(10.dp)
     ) {
         Column(

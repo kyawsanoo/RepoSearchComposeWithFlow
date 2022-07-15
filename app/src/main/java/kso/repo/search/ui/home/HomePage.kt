@@ -37,7 +37,6 @@ import kso.repo.search.model.Resource
 import kso.repo.search.ui.common.NetworkAlertScreen
 import kso.repo.search.ui.common.SpannableText
 import kso.repo.search.viewModel.HomePageViewModel
-import kso.repo.search.viewModel.NetworkConnectionState
 
 private const val TAG: String = "HomePage"
 
@@ -108,7 +107,7 @@ fun HomePage(
             RepoSearchBoxView(
                 searchText = searchText,
                 showProgress = isLoading,
-                errorMessage = errorMessage,
+                apiErrorMessage = errorMessage,
                 onRetryClick = {
                     homePageViewModel.retry()
                 },
@@ -226,7 +225,7 @@ fun RepoRow(repo: Repo, onClick: () -> Unit) {
     ) {
 
         SubcomposeAsyncImage(
-            model = repo.owner?.avatarUrl,
+            model = repo.owner.avatarUrl,
             loading = {
                 CircularProgressIndicator()
             },

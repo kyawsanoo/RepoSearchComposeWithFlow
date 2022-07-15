@@ -11,7 +11,7 @@ inline fun <ApiResponse, ResultType, RequestType> repoSearchNetworkBoundResource
     // Fetches response
     crossinline fetchRemote: suspend () -> Response<ApiResponse>,
 
-    // Extracts data from remote response (ex.: response.body()!! or response.body()!!.items)
+    // Extracts data from remote response (response.body()!!.items)
     crossinline getDataFromResponse: suspend (response: Response<ApiResponse>) -> RequestType,
 
     // Saves remote data to local db
@@ -26,14 +26,14 @@ inline fun <ApiResponse, ResultType, RequestType> repoSearchNetworkBoundResource
 
     ) = flow {
 
-    Log.e("NetworkBoundResource", "shouldFetch: ${shouldFetch()}")
+    Log.e("repoSearchNBResource", "shouldFetch: ${shouldFetch()}")
 
     if (shouldFetch()) {
-        Log.e("NetworkBoundResource", "shouldFetch: true block")
+        Log.e("repoSearchNBResource", "shouldFetch: true block")
         emit(Resource.Loading)
 
         try {
-            Log.e("NetworkBoundResource", "try block calling Api")
+            Log.e("repoSearchNBResource", "try block calling Api")
             // Fetch data from remote api
             val response = fetchRemote()
 
@@ -42,17 +42,17 @@ inline fun <ApiResponse, ResultType, RequestType> repoSearchNetworkBoundResource
 
             // Response validation
             if (response.isSuccessful && data != null) {
-                Log.e("NetworkBoundResource", "Save data to database")
+                Log.e("repoSearchNBResource", "Save data to database")
                 // Save data to database
                 saveFetchResult(data)
             } else {
-                Log.e("NetworkBoundResource", "Save data to database")
-                Log.e("NetworkBoundResource", "error = ${response.message()}")
+                Log.e("repoSearchNBResource", "Save data to database")
+                Log.e("repoSearchNBResource", "error = ${response.message()}")
                 // Emit error
                 emit(Resource.Fail(error = response.message()))
             }
         } catch (e: Exception) {
-            Log.e("NetworkBoundResource", "catch bloc Api error: ${e.message}")
+            Log.e("repoSearchNBResource", "catch bloc Api error: ${e.message}")
             emit(Resource.Fail(error = "Network error!"))
 
         }
@@ -62,7 +62,7 @@ inline fun <ApiResponse, ResultType, RequestType> repoSearchNetworkBoundResource
     // get data from local db
     emitAll(
         fetchLocal().map {
-            Log.e("NetworkBoundResource", "fetchLocal()")
+            Log.e("repoSearchNBResource", "fetchLocal()")
             Resource.Success(it)
         }
     )
