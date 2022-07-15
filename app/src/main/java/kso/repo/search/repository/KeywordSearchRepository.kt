@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.flowOn
 import kso.repo.search.app.CurrentNetworkStatus
 import kso.repo.search.dataSource.api.RestDataSource
 import kso.repo.search.dataSource.db.RepoSearchDatabase
+import kso.repo.search.networkboundresource.keywordSearchNetworkBoundResource
 import javax.inject.Inject
 
 interface KeywordSearchBaseRepository{

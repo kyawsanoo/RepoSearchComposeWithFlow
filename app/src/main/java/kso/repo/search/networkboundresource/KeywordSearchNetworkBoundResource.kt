@@ -1,8 +1,9 @@
-package kso.repo.search.model
+package kso.repo.search.networkboundresource
 
 
 import android.util.Log
 import kotlinx.coroutines.flow.*
+import kso.repo.search.model.Resource
 
 inline fun <ResultType, RequestType> keywordSearchNetworkBoundResource(
 

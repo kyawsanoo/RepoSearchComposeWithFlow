@@ -2,7 +2,6 @@ package kso.repo.search.repository
 
 import android.content.Context
 import android.util.Log
-import androidx.room.withTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
@@ -10,7 +9,7 @@ import kso.repo.search.app.CurrentNetworkStatus
 import kso.repo.search.dataSource.api.RestDataSource
 import kso.repo.search.dataSource.db.RepoSearchDatabase
 import kso.repo.search.model.*
-import retrofit2.Response
+import kso.repo.search.networkboundresource.repoDetailNetworkBoundResource
 import javax.inject.Inject
 
 interface RepoDetailBaseRepository{

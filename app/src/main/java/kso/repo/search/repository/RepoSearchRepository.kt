@@ -10,7 +10,7 @@ import kso.repo.search.dataSource.api.RestDataSource
 import kso.repo.search.dataSource.db.RepoSearchDatabase
 import kso.repo.search.model.Repo
 import kso.repo.search.model.Resource
-import kso.repo.search.model.networkBoundResource
+import kso.repo.search.networkboundresource.repoSearchNetworkBoundResource
 import javax.inject.Inject
 
 interface RepoSearchBaseRepository{
@@ -29,7 +29,7 @@ class RepoSearchRepository @Inject constructor(
 
     override fun getRepoListNetworkBoundResource(s: String): Flow<Resource<List<Repo>>> {
 
-        return networkBoundResource(
+        return repoSearchNetworkBoundResource(
 
             // make request
             fetchRemote = {
