@@ -40,7 +40,7 @@ fun AppNavHost(navHostController: NavHostController) {
             "${NavPath.HomePage.route}?repoName={repo_name}", arguments = listOf(
                 navArgument("repo_name") {
                     type = NavType.StringType
-                    defaultValue = "Android"
+                    defaultValue = "grit"
                 })
 
         ) {

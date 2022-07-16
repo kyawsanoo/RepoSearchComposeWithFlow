@@ -1,6 +1,7 @@
 package kso.repo.search.ui.home
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,10 +14,10 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -40,7 +41,7 @@ import kso.repo.search.viewModel.HomePageViewModel
 
 private const val TAG: String = "HomePage"
 
-@OptIn(ExperimentalAnimationApi::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun HomePage(
     navHostController: NavHostController,
@@ -50,26 +51,37 @@ fun HomePage(
     val repoListNBR by homePageViewModel.repoListNBR.collectAsStateLifecycleAware()
     val isConnected by homePageViewModel.isConnected.collectAsStateLifecycleAware(initial = NetworkStatus.Available)
     val isRefreshing by homePageViewModel.isRefreshing.collectAsStateLifecycleAware()
+    val isShowToast by homePageViewModel.showToast.collectAsStateLifecycleAware()
     var isLoading = false
     var errorMessage = ""
     var repoList: List<Repo> = listOf()
+    val context = LocalContext.current
 
+    if(isShowToast){
+        Toast.makeText(
+            context,
+            "Need connection",
+            Toast.LENGTH_SHORT
+        ).show()
+        homePageViewModel.showToastCollected()
+    }
 
     when (repoListNBR) {
         Resource.Loading -> {
-            Log.e(TAG, "NWBR Loading")
+            Log.e(TAG, "RepoSearch Fetch Loading")
             isLoading = repoListNBR.isLoading
         }
         Resource.Fail("") -> {
-            Log.e(TAG, "NWBR  Fail")
+            Log.e(TAG, "RepoSearch Fetch Fail")
             errorMessage = repoListNBR.errorMessage.orEmpty()
         }
         else -> {
-            Log.e(TAG, "NWBR Success")
+            Log.e(TAG, "RepoSearch Fetch Success")
             repoList = repoListNBR.data.orEmpty()
             homePageViewModel.onDoneCollectResource()
         }
     }
+
     Scaffold(topBar = {
         AppBarWithSearchBox(
             searchText,
@@ -81,9 +93,6 @@ fun HomePage(
         }
     }) {
             paddingValues ->
-
-
-
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -117,7 +126,9 @@ fun HomePage(
 
                 SwipeRefresh(
                     state = rememberSwipeRefreshState(isRefreshing),
-                    onRefresh = { homePageViewModel.refresh() }
+                    onRefresh = {
+                        homePageViewModel.refresh()
+                    }
                 ) {
                     LazyColumn(
                         modifier = Modifier.fillMaxWidth(),
@@ -150,8 +161,6 @@ fun HomePage(
 
 }
 
-@ExperimentalAnimationApi
-@ExperimentalComposeUiApi
 @Composable
 fun AppBarWithSearchBox(
     searchText: String,

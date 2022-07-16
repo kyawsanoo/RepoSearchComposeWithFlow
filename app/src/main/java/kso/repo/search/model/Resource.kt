@@ -1,6 +1,7 @@
 package kso.repo.search.model
 
 sealed class Resource<out T> {
+    object Start : Resource<Nothing>()
     object Loading : Resource<Nothing>()
 
     data class Success<out T>(

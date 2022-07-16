@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.flowOn
 import kso.repo.search.app.CurrentNetworkStatus
 import kso.repo.search.dataSource.api.RestDataSource
 import kso.repo.search.dataSource.db.RepoSearchDatabase
+import kso.repo.search.dataSource.preference.PreferenceProvider
 import kso.repo.search.model.Repo
 import kso.repo.search.model.Resource
 import kso.repo.search.networkboundresource.repoSearchNetworkBoundResource
@@ -22,6 +23,7 @@ interface RepoSearchBaseRepository{
 class RepoSearchRepository @Inject constructor(
     private val apiDataSource: RestDataSource,
     private val dbDataSource: RepoSearchDatabase,
+    private val prefs: PreferenceProvider,
     private val appContext: Context
     ): RepoSearchBaseRepository {
 
@@ -47,6 +49,7 @@ class RepoSearchRepository @Inject constructor(
             saveFetchResult = {
                     repos ->
                 Log.e("Repository", "saveFetchResult()")
+                prefs.setSearchKeyword(s)
                 repoDetailDao.insertToRepoDetail(repos)
 
             },
