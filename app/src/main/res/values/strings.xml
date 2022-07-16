@@ -18,4 +18,6 @@
     <string name="connected">Connected </string>
     <string name="not_connected">Not Connected </string>
     <string name="need_connection">Need open connection first time and touch refresh.</string>
+    <string name="search">Search:</string>
+    <string name="add">Add</string>
 </resources>

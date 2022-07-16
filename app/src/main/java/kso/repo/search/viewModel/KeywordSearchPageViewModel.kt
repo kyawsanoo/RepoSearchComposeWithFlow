@@ -62,7 +62,7 @@ class KeywordSearchPageViewModel @Inject constructor(
 
     fun onSearchTextChanged(changedSearchText: String) {
 
-        Log.e(tag, "onSearchTextChanged: keywordt ${searchText.value}")
+        Log.e(tag, "onSearchTextChanged: keyword ${searchText.value}")
         searchText.value = changedSearchText
         submit()
 

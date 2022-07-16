@@ -20,6 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomePageViewModel @Inject constructor(
+
     savedStateHandle: SavedStateHandle,
     private val repository: RepoSearchBaseRepository,
     private val networkStatusDetector: NetworkStatusDetector,
@@ -127,6 +128,26 @@ class HomePageViewModel @Inject constructor(
     fun showToastCollected(){
         Log.e(tag, "showToastCollected()")
         showToast.value = false
+    }
+
+    fun onSearchTextChanged(changedSearchText: String) {
+
+        Log.e(tag, "onSearchTextChanged: keyword ${searchText.value}")
+        searchText.value = changedSearchText
+
+    }
+    fun onKeyboardSearchClick(query: String) {
+
+        Log.e(tag, "onSearchTextChanged: keyword ${searchText.value}")
+        searchText.value = query
+        submit()
+
+    }
+
+    fun onSearchBoxClear() {
+        Log.e(tag, "onSearchClear: ")
+        searchText.value = ""
+        //submit()
     }
 
 }

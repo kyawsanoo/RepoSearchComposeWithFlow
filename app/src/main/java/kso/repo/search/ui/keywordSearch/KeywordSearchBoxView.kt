@@ -30,7 +30,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kso.repo.search.R
-import kso.repo.search.model.Keyword
 import kso.repo.search.ui.common.ErrorScreen
 import kso.repo.search.ui.common.LoadingScreen
 
@@ -60,10 +59,11 @@ fun KeywordSearchBoxView(
             onNavigateBack
         )
     }) {
+        paddingValues ->
         Box {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxSize().padding(paddingValues)
             ) {
                 Box(modifier = Modifier
                     .fillMaxWidth()
@@ -82,8 +82,6 @@ fun KeywordSearchBoxView(
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Normal,
                             modifier = Modifier.padding(horizontal = 10.dp)
-
-
                         )
                         Text(
                             text = searchText,
