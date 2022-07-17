@@ -3,15 +3,18 @@ package kso.repo.search.app
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import kso.repo.search.dataSource.preference.PreferenceProvider
 import kso.repo.search.ui.detail.RepoDetailPage
 import kso.repo.search.ui.detail.UserDetailPage
 import kso.repo.search.ui.home.HomePage
+import kso.repo.search.ui.home.RepoListPage
 import kso.repo.search.ui.keywordSearch.KeywordSearchPage
 import kso.repo.search.viewModel.*
 
@@ -19,6 +22,7 @@ enum class NavPath(
     val route: String,
 ) {
     HomePage(route = "home_page"),
+    RepoListPage(route = "repo_list_page"),
     KeywordSearchPage(route = "search_box_page"),
     UserDetailPage(route = "user_detail"),
     RepoDetailPage(route = "repo_detail")
@@ -28,21 +32,21 @@ enum class NavPath(
 @ExperimentalAnimationApi
 @Composable
 fun AppNavHost(navHostController: NavHostController) {
-
+    val preferenceProvider = PreferenceProvider(LocalContext.current)
     NavHost(
         navController = navHostController,
-        startDestination =
-        "${NavPath.HomePage.route}?repoName={repo_name}"
+        startDestination = when(preferenceProvider.getSearchKeyword().isEmpty()){
+            true ->
+                NavPath.HomePage.route
+            else -> {
+                "${NavPath.RepoListPage.route}?repoName={repo_name}"
+            }
+        }
+
     ) {
 
         composable(
-
-            "${NavPath.HomePage.route}?repoName={repo_name}", arguments = listOf(
-                navArgument("repo_name") {
-                    type = NavType.StringType
-                    defaultValue = "grit"
-                })
-
+            NavPath.HomePage.route
         ) {
             val homePageViewModel: HomePageViewModel = hiltViewModel()
 
@@ -52,7 +56,22 @@ fun AppNavHost(navHostController: NavHostController) {
             )
         }
 
+        composable(
 
+            "${NavPath.RepoListPage.route}?repoName={repo_name}", arguments = listOf(
+                navArgument("repo_name") {
+                    type = NavType.StringType
+                    defaultValue = preferenceProvider.getSearchKeyword()
+                })
+
+        ) {
+            val repoListPageViewModel: RepoListPageViewModel = hiltViewModel()
+
+            RepoListPage(
+                navHostController = navHostController,
+                repoListPageViewModel = repoListPageViewModel,
+            )
+        }
 
         composable(NavPath.KeywordSearchPage.route) {
             val userSearchDemoViewModel = hiltViewModel<KeywordSearchPageViewModel>()

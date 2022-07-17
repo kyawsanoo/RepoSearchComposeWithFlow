@@ -1,4 +1,4 @@
-package kso.repo.search.viewModel
+package kso.repo.search.ui.state
 
 sealed class NetworkConnectionState {
     object Fetched : NetworkConnectionState()

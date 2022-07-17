@@ -87,7 +87,7 @@ fun KeywordSearchPage(navHostController: NavHostController, keywordSearchPageVie
         },
         onKeywordClick = {
             navHostController.navigate(
-                route = "${NavPath.HomePage.route}?repoName=$searchText"
+                route = "${NavPath.RepoListPage.route}?repoName=$searchText"
             )
         }
     ) {
@@ -99,9 +99,9 @@ fun KeywordSearchPage(navHostController: NavHostController, keywordSearchPageVie
             items(items = keywordList) { keyword ->
                 KeywordRow(keyword = keyword) {
                     val argRepoName = keyword.name
-                    Log.e(TAG, "Route: ${NavPath.HomePage.route}?repoName=$argRepoName")
+                    Log.e(TAG, "Route: ${NavPath.RepoListPage.route}?repoName=$argRepoName")
                     navHostController.navigate(
-                        route = "${NavPath.HomePage.route}?repoName=${argRepoName}"
+                        route = "${NavPath.RepoListPage.route}?repoName=${argRepoName}"
                     )
                 }
             }
