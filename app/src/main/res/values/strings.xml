@@ -23,4 +23,5 @@
     <string name="search">Search:</string>
     <string name="add">Add</string>
     <string name="need_connection_message">Need connection</string>
+    <string name="keyword_empty">Keyword is empty</string>
 </resources>

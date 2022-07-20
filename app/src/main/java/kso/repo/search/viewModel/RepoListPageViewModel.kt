@@ -31,7 +31,7 @@ class RepoListPageViewModel @Inject constructor(
 ) :
     ViewModel() {
 
-    private val tag: String = "HomePageViewModel"
+    private val tag: String = "RepoListPageViewModel"
     private val repoName: String = savedStateHandle.get<String>("repo_name").orEmpty()
 
     val searchText: MutableStateFlow<String> = MutableStateFlow(repoName)
@@ -56,9 +56,8 @@ class RepoListPageViewModel @Inject constructor(
                 onUnavailable = { NetworkConnectionState.Error },
             )
 
-    val isConnected: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isRefreshing: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val showToast: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val showSearchTextEmptyToast: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     init {
 
@@ -78,31 +77,23 @@ class RepoListPageViewModel @Inject constructor(
         viewModelScope.launch {
             Log.e(tag, "in ViewModelScope")
             Log.e(tag, "preferenceKeyword: ${preferenceProvider.getSearchKeyword()}")
-            if(preferenceProvider.getSearchKeyword() == searchText.value) {
-                Log.e(tag, "Not Need connection")
-                repoListNBRSharedFlow.emit(Unit)
-            }else{
-                if(CurrentNetworkStatus.getNetwork(application.applicationContext)){
+            if(searchText.value.isEmpty()){
+                showSearchTextEmptyToast.value = true
+            }else {
+                showSearchTextEmptyToast.value = false
+                if (preferenceProvider.getSearchKeyword() == searchText.value) {
+                    Log.e(tag, "Not Need connection")
                     repoListNBRSharedFlow.emit(Unit)
-                }else{
-                    Log.e(tag, "Need connection")
-                    showToast.value = true
+                } else {
+                    if (CurrentNetworkStatus.getNetwork(application.applicationContext)) {
+                        repoListNBRSharedFlow.emit(Unit)
+                    } else {
+                        Log.e(tag, "Need connection")
+                    }
                 }
             }
 
-            networkState.collect{
-                        networkState ->
-                isConnected.value = when (networkState) {
-                    NetworkConnectionState.Fetched -> {
-                        Log.e(tag, "Network Status: Fetched")
-                        true
-                    }
-                    else -> {
-                        Log.e(tag, "Network Status: Error")
-                        false
-                    }
-                }
-            }
+
 
         }
 
@@ -127,9 +118,10 @@ class RepoListPageViewModel @Inject constructor(
         Log.e(tag, "onDoneCollectResource()")
         isRefreshing.value = false
     }
-    fun showToastCollected(){
-        Log.e(tag, "showToastCollected()")
-        showToast.value = false
+
+    fun showSearchTextEmptyToastCollected(){
+        Log.e(tag, "showSearchTextEmptyToastCollected()")
+        showSearchTextEmptyToast.value = false
     }
 
     fun onSearchTextChanged(changedSearchText: String) {
@@ -149,7 +141,6 @@ class RepoListPageViewModel @Inject constructor(
     fun onSearchBoxClear() {
         Log.e(tag, "onSearchClear: ")
         searchText.value = ""
-        //submit()
     }
 
 }

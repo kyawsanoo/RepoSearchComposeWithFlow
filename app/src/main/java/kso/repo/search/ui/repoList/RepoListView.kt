@@ -1,13 +1,15 @@
-package kso.repo.search.ui.home
+package kso.repo.search.ui.repoList
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kso.repo.search.R
 import kso.repo.search.ui.common.ErrorScreen
 import kso.repo.search.ui.common.LoadingScreen
@@ -20,6 +22,7 @@ fun RepoListView(
     onRetryClick: () -> Unit = {},
     modifier: Modifier,
     isDataNotEmpty: Boolean,
+    isConnected: Boolean,
 
     results: @Composable () -> Unit = {}
 ) {
@@ -42,7 +45,15 @@ fun RepoListView(
                         if (isDataNotEmpty) {
                             results()
                         } else {
-                            NoSearchResults(onRetryClick = onRetryClick)
+                            if(isConnected){
+                                NoSearchResults()
+                            }else{
+                                ErrorScreen(
+                                    errorMessage = stringResource(id = R.string.need_connection),
+                                    onRetryClick = onRetryClick
+                                )
+                            }
+
                         }
                     }
                 }
@@ -57,7 +68,7 @@ fun RepoListView(
 
 
 @Composable
-fun NoSearchResults(onRetryClick: () -> Unit = {},) {
+fun NoSearchResults() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -71,13 +82,7 @@ fun NoSearchResults(onRetryClick: () -> Unit = {},) {
             verticalArrangement = Arrangement.SpaceAround,
             horizontalAlignment = CenterHorizontally
         ) {
-            //Text(stringResource(id = R.string.no_matched_repo_found), fontSize = 14.sp)
-            ErrorScreen(
-                errorMessage = stringResource(id = R.string.need_connection),
-                onRetryClick = onRetryClick
-            )
-
-
+            Text(stringResource(id = R.string.no_matched_repo_found), fontSize = 14.sp)
         }
     }
 }

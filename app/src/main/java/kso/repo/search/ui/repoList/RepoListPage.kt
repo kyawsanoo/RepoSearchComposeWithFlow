@@ -1,4 +1,4 @@
-package kso.repo.search.ui.home
+package kso.repo.search.ui.repoList
 
 import android.util.Log
 import android.widget.Toast
@@ -48,6 +48,7 @@ import kso.repo.search.model.Repo
 import kso.repo.search.model.Resource
 import kso.repo.search.ui.common.NetworkAlertScreen
 import kso.repo.search.ui.common.SpannableText
+import kso.repo.search.ui.state.NetworkConnectionState
 import kso.repo.search.viewModel.RepoListPageViewModel
 
 private const val TAG: String = "HomePage"
@@ -58,24 +59,39 @@ fun RepoListPage(
     navHostController: NavHostController,
     repoListPageViewModel: RepoListPageViewModel,
 ) {
-    val searchText by repoListPageViewModel.searchText.collectAsStateLifecycleAware()
-    val repoListNBR by repoListPageViewModel.repoListNBR.collectAsStateLifecycleAware()
-    val isConnected by repoListPageViewModel.isConnected.collectAsStateLifecycleAware()
-    val isRefreshing by repoListPageViewModel.isRefreshing.collectAsStateLifecycleAware()
-    val isShowToast by repoListPageViewModel.showToast.collectAsStateLifecycleAware()
+    val searchText by repoListPageViewModel.searchText.collectAsStateLifecycleAware("")
+    val repoListNBR by repoListPageViewModel.repoListNBR.collectAsStateLifecycleAware(Resource.Start)
+    val networkState by repoListPageViewModel.networkState.collectAsStateLifecycleAware(NetworkConnectionState.Error)
+    val isRefreshing by repoListPageViewModel.isRefreshing.collectAsStateLifecycleAware(false)
+    val isShowSearchTextEmptyToast by repoListPageViewModel.showSearchTextEmptyToast.collectAsStateLifecycleAware(false)
+
     val isLoading: Boolean
     var errorMessage = ""
     var repoList: List<Repo> = listOf()
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
+    val needConnectionMessage = stringResource(id = R.string.need_connection_message)
+    val keywordEmptyMessage = stringResource(id = R.string.keyword_empty)
 
-    if(isShowToast){
+    val isConnected: Boolean = when (networkState) {
+        NetworkConnectionState.Fetched -> {
+            Log.e(TAG, "Network Status: Fetched")
+            true
+        }
+        else -> {
+            Log.e(TAG, "Network Status: Error")
+            false
+        }
+    }
+
+
+    if(isShowSearchTextEmptyToast){
         Toast.makeText(
             context,
-            stringResource(id = R.string.need_connection_message),
+            keywordEmptyMessage,
             Toast.LENGTH_SHORT
         ).show()
-        repoListPageViewModel.showToastCollected()
+        repoListPageViewModel.showSearchTextEmptyToastCollected()
     }
 
     when (repoListNBR) {
@@ -120,7 +136,7 @@ fun RepoListPage(
         ) {
 
             NetworkAlertScreen(
-                errorMessage = when (isConnected) {
+                connectionMessage = when (isConnected) {
                     true -> {
                         stringResource(
                             id = R.string.connected
@@ -140,13 +156,23 @@ fun RepoListPage(
                     repoListPageViewModel.retry()
                 },
                 modifier = Modifier.padding(paddingValues),
-                isDataNotEmpty = repoList.isNotEmpty()
+                isDataNotEmpty = repoList.isNotEmpty(),
+                isConnected = isConnected
+
             ) {
 
                 SwipeRefresh(
                     state = rememberSwipeRefreshState(isRefreshing),
                     onRefresh = {
-                        repoListPageViewModel.refresh()
+                        if(isConnected) {
+                            repoListPageViewModel.refresh()
+                        }else{
+                            Toast.makeText(
+                                context,
+                                needConnectionMessage,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
                 ) {
                     LazyColumn(

@@ -14,8 +14,8 @@ import kso.repo.search.dataSource.preference.PreferenceProvider
 import kso.repo.search.ui.detail.RepoDetailPage
 import kso.repo.search.ui.detail.UserDetailPage
 import kso.repo.search.ui.home.HomePage
-import kso.repo.search.ui.home.RepoListPage
 import kso.repo.search.ui.keywordSearch.KeywordSearchPage
+import kso.repo.search.ui.repoList.RepoListPage
 import kso.repo.search.viewModel.*
 
 enum class NavPath(

@@ -50,7 +50,7 @@ fun RepoDetailPage(
 ) {
 
     val repoResource by repoDetailViewModel.repoResource.collectAsState(initial = Resource.Loading)
-    val isRefreshing by repoDetailViewModel.isRefreshing.collectAsStateLifecycleAware()
+    val isRefreshing by repoDetailViewModel.isRefreshing.collectAsStateLifecycleAware(false)
     val context = LocalContext.current
     var isLoading = false
     var errorMessage = ""

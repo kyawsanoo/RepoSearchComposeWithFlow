@@ -22,7 +22,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -66,7 +65,7 @@ fun ContentView(
     homePageViewModel: HomePageViewModel,
     navHostController: NavHostController
 ){
-    val searchText by homePageViewModel.searchText.collectAsStateLifecycleAware()
+    val searchText by homePageViewModel.searchText.collectAsStateLifecycleAware("")
     val keyboardController = LocalSoftwareKeyboardController.current
     var showClearButton by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }

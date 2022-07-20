@@ -38,7 +38,7 @@ private const val TAG= "UserSearchPage"
 fun KeywordSearchPage(navHostController: NavHostController, keywordSearchPageViewModel: KeywordSearchPageViewModel) {
 
     val searchText by keywordSearchPageViewModel.searchText.collectAsStateLifecycleAware(initial = "")
-    val keywordListNBR by keywordSearchPageViewModel.keywordListNBR.collectAsStateLifecycleAware()
+    val keywordListNBR by keywordSearchPageViewModel.keywordListNBR.collectAsStateLifecycleAware(Resource.Start)
 
     var isLoading = false
     var errorMessage = ""

@@ -16,7 +16,7 @@ import kso.repo.search.R
 
 
 @Composable
-fun NetworkAlertScreen(errorMessage: String) {
+fun NetworkAlertScreen(connectionMessage: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -31,7 +31,8 @@ fun NetworkAlertScreen(errorMessage: String) {
 
         ) {
             Text(text = stringResource(id = R.string.network_connection_status), fontSize = 12.sp, modifier = Modifier.padding(10.dp))
-            Text(text = errorMessage, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colors.primaryVariant, fontSize = 12.sp, modifier = Modifier.padding(10.dp))
+
+            Text(text = connectionMessage, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colors.primaryVariant, fontSize = 12.sp, modifier = Modifier.padding(10.dp))
 
         }
     }

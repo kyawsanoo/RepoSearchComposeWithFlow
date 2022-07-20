@@ -10,7 +10,7 @@ repo search list|keyword suggestion list|repo detail
 ## Architecture
 <img src="images/architecture.png" width="250px" />
 
-### SharedFlow usage in HomePage repo list
+### SharedFlow usage in HomePage repo list suggestion
 Call a ViewModel function, and emit to [MutableSharedFlow](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-mutable-shared-flow/).
 
 After transformed to hot stream with [ViewModelScope](https://developer.android.com/topic/libraries/architecture/coroutines#viewmodelscope), 
@@ -18,65 +18,148 @@ collect safely it with collectAsStateLifecycleAware in Composable View.
 
 ```kotlin
 @HiltViewModel
-class HomePageViewModel @Inject constructor(savedStateHandle: SavedStateHandle, repository: AppRepository):
+class RepoListPageViewModel @Inject constructor(
+
+  savedStateHandle: SavedStateHandle,
+  private val repository: RepoSearchBaseRepository,
+  networkStatusDetector: NetworkStatusDetector,
+  private val preferenceProvider: PreferenceProvider,
+  private val application: Application
+
+) :
   ViewModel() {
 
-  val TAG: String = "HomePageViewModel"
+  private val tag: String = "RepoListPageViewModel"
   private val repoName: String = savedStateHandle.get<String>("repo_name").orEmpty()
 
   val searchText: MutableStateFlow<String> = MutableStateFlow(repoName)
 
-  private val repoListNBRSharedFlow = MutableSharedFlow<Unit>()
+  private var repoListNBRSharedFlow = MutableSharedFlow<Unit>()
 
   @Suppress("OPT_IN_IS_NOT_ENABLED")
   @OptIn(ExperimentalCoroutinesApi::class)
   var repoListNBR = repoListNBRSharedFlow
-    .map { searchText.value }
-    .flatMapLatest { repository.getRepoListNetworkBoundResource(it) }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, Resource.Loading)
+    .map {
+      searchText.value
+    }
+    .flatMapLatest { repository.getRepoListNetworkBoundResource(it)}
+    .stateIn(viewModelScope, SharingStarted.Eagerly, Resource.Start)
+
+
+  @OptIn(FlowPreview::class)
+  val networkState =
+    networkStatusDetector.networkStatus
+      .map (
+        onAvailable = { NetworkConnectionState.Fetched },
+        onUnavailable = { NetworkConnectionState.Error },
+      )
+
+  val isRefreshing: MutableStateFlow<Boolean> = MutableStateFlow(false)
+  val showSearchTextEmptyToast: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
   init {
 
-    Log.e(tag, "init");
+    Log.e(tag, "init")
     Log.e(tag, "Argument: $repoName")
     Log.e(tag, "SearchText: ${searchText.value}")
 
     submit()
 
   }
+
+
+  @OptIn(FlowPreview::class)
+  fun submit() {
+    Log.e(tag, "fetch RepoList")
+
+    viewModelScope.launch {
+      Log.e(tag, "in ViewModelScope")
+      Log.e(tag, "preferenceKeyword: ${preferenceProvider.getSearchKeyword()}")
+      if(searchText.value.isEmpty()){
+        showSearchTextEmptyToast.value = true
+      }else {
+        showSearchTextEmptyToast.value = false
+        if (preferenceProvider.getSearchKeyword() == searchText.value) {
+          Log.e(tag, "Not Need connection")
+          repoListNBRSharedFlow.emit(Unit)
+        } else {
+          if (CurrentNetworkStatus.getNetwork(application.applicationContext)) {
+            repoListNBRSharedFlow.emit(Unit)
+          } else {
+            Log.e(tag, "Need connection")
+          }
+        }
+      }
+
+
+
+    }
+
+  }
+
 }
 
 ```
 
 ```kotlin
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun HomePage(
+fun RepoListPage(
   navHostController: NavHostController,
-  homePageViewModel: HomePageViewModel,
-  scaffoldState: ScaffoldState = rememberScaffoldState()
+  repoListPageViewModel: RepoListPageViewModel,
 ) {
-  val searchText by homePageViewModel.searchText.collectAsStateLifecycleAware(initial = "")
-  val repoListNBR by homePageViewModel.repoListNBR.collectAsStateLifecycleAware()
+  val searchText by repoListPageViewModel.searchText.collectAsStateLifecycleAware("")
+  val repoListNBR by repoListPageViewModel.repoListNBR.collectAsStateLifecycleAware(Resource.Start)
+  val networkState by repoListPageViewModel.networkState.collectAsStateLifecycleAware(NetworkConnectionState.Error)
+  val isRefreshing by repoListPageViewModel.isRefreshing.collectAsStateLifecycleAware(false)
+  val isShowSearchTextEmptyToast by repoListPageViewModel.showSearchTextEmptyToast.collectAsStateLifecycleAware(false)
 
-  var isLoading = false
+  val isLoading: Boolean
   var errorMessage = ""
   var repoList: List<Repo> = listOf()
+  val context = LocalContext.current
+  val keyboardController = LocalSoftwareKeyboardController.current
+  val needConnectionMessage = stringResource(id = R.string.need_connection_message)
+  val keywordEmptyMessage = stringResource(id = R.string.keyword_empty)
 
+  val isConnected: Boolean = when (networkState) {
+    NetworkConnectionState.Fetched -> {
+      Log.e(TAG, "Network Status: Fetched")
+      true
+    }
+    else -> {
+      Log.e(TAG, "Network Status: Error")
+      false
+    }
+  }
+
+  if(isShowSearchTextEmptyToast){
+    Toast.makeText(
+      context,
+      keywordEmptyMessage,
+      Toast.LENGTH_SHORT
+    ).show()
+    repoListPageViewModel.showSearchTextEmptyToastCollected()
+  }
 
   when (repoListNBR) {
     Resource.Loading -> {
-      Log.e(TAG, "NWBR Loading")
+      Log.e(TAG, "RepoSearch Fetch Loading")
       isLoading = repoListNBR.isLoading
     }
     Resource.Fail("") -> {
-      Log.e(TAG, "NWBR  Fail")
+      Log.e(TAG, "RepoSearch Fetch Fail")
+      isLoading = false
       errorMessage = repoListNBR.errorMessage.orEmpty()
     }
     else -> {
-      Log.e(TAG, "NWBR Success")
+      Log.e(TAG, "RepoSearch Fetch Success")
+      isLoading = false
       repoList = repoListNBR.data.orEmpty()
+      repoListPageViewModel.onDoneCollectResource()
     }
   }
+
 }
 
 ```
@@ -164,19 +247,79 @@ fun KeywordSearchPage(navHostController: NavHostController, keywordSearchPageVie
 Use Room database for offline storage and cache [Room](https://developer.android.com/training/data-storage/room/accessing-data) together with the help of 
 Network Bound Resource  [Network Bound Resource](https://developer.android.com/topic/libraries/architecture/coroutines#viewmodelscope).
 
-
+# RepoSearchDatabase
 ```kotlin
-@TypeConverters(Converters::class)
-@Database(entities = [Repo::class, Keyword::class], version = 1, exportSchema = false)
+@Database(entities = [Repo::class, Owner::class, Keyword::class], version = 1, exportSchema = false)
 abstract class RepoSearchDatabase() : RoomDatabase() {
 
   abstract fun repoDao(): RepoDao
 
+  abstract fun ownerDao(): OwnerDao
+
+  abstract fun repoDetailDao() : RepoDetailDao
+
   abstract fun keywordDao(): KeywordDao
+
 
 }
 
 ```
+# RepoDetail Table Dao
+```kotlin
+
+@Dao
+abstract class RepoDetailDao: RepoDao, OwnerDao {
+
+  fun insertToRepoDetail(repos: List<Repo>) {
+    // delete previous data
+    deleteAllRepos()
+    deleteAllOwners()
+
+    // save new data
+    for (r in repos) {
+      r.owner.repoId = r.id
+      upsertOwner(r.owner)
+    }
+    insertReposToRepoDetail(repos)
+  }
+
+  fun getRepoDetail() : Flow<List<Repo>> {
+    val repoDetail = _getAllFromRepoDetail()
+    val repos: MutableList<Repo> = mutableListOf()
+    for (i in repoDetail) {
+      i.repo.owner = i.owner
+      repos.add(i.repo)
+    }
+    Log.e("RepoDetailDao", "getRepos from RepoDetail: size ${repos.size}")
+    return flow { emit(repos) }
+  }
+
+  fun getRepoDetailById(repoId: Long) : Flow<Repo> {
+    val repoWithOwner = _getRepoDetailById(repoId)
+    val repo = repoWithOwner.repo
+    repo.owner = repoWithOwner.owner
+    return flow { emit(repo) }
+  }
+
+  // insert or update if exists
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  abstract fun upsertRepos(repos: List<Repo>)
+
+  @Insert(onConflict = OnConflictStrategy.IGNORE)
+  abstract fun insertReposToRepoDetail(repos: List<Repo>)
+
+  @Transaction
+  @Query("SELECT * FROM Repo, Owner WHERE Repo.id = Owner.repoId ORDER BY Repo.stargazersCount DESC")
+  abstract fun _getAllFromRepoDetail() : List<RepoDetail>
+
+  @Transaction
+  @Query("SELECT * FROM Repo INNER JOIN Owner ON Owner.repoId = Repo.id WHERE Repo.id = :repoId")
+  abstract fun _getRepoDetailById(repoId: Long) : RepoDetail
+
+}
+
+```
+# Repo Table Dao
 ```kotlin
 @Dao
 interface RepoDao {
@@ -184,57 +327,92 @@ interface RepoDao {
   @Insert(onConflict = OnConflictStrategy.REPLACE)
   suspend fun insertAll(repos: List<Repo>)
 
-  @Query("DELETE FROM Repos")
+  @Query("DELETE FROM Repo")
   suspend fun deleteAll()
 
-  @Query("SELECT * FROM Repos WHERE name IN (:userNames)")
-  fun getRepos(userNames: String): Flow<List<Repo>>
+  @Query("SELECT * FROM Repo WHERE name IN (:repoNames)")
+  fun getRepos(repoNames: String): Flow<List<Repo>>
+
+  @Query("SELECT * FROM Repo WHERE name LIKE '%' || (:repoName) || '%'")
+  fun getFilteredRepos(repoName: String?): Flow<List<Repo>>
+
+  @Query("DELETE FROM Repo")
+  abstract fun deleteAllRepos()
+
+
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  abstract fun upsertRepo(vararg repo: Repo)
 }
 
 ```
+# Owner Table Dao
 ```kotlin
-class RepoSearchAppRepository @Inject constructor(
+@Dao
+interface OwnerDao {
+
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  abstract fun upsertOwner(owner: Owner)
+
+  @Query("DELETE FROM Owner")
+  abstract fun deleteAllOwners()
+
+}
+
+```
+# RepoSearch Repository with Network Bound Resource for offline cache
+```kotlin
+class RepoSearchRepository @Inject constructor(
   private val apiDataSource: RestDataSource,
-  private val dbDataSource: RepoSearchDatabase
-): AppRepository {
+  private val dbDataSource: RepoSearchDatabase,
+  private val prefs: PreferenceProvider,
+  private val appContext: Context
+): RepoSearchBaseRepository {
 
-  private val keywordDao = dbDataSource.keywordDao()
-  private val repoDao = dbDataSource.repoDao()
+  private val repoDetailDao = dbDataSource.repoDetailDao()
 
-  @OptIn(FlowPreview::class)
-  override fun getRepoListNetworkBoundResource(s: String): Flow<Resource<List<Repo>>> =
-    networkBoundResource(
-      query = {
-        repoDao.getRepos(s)
-      },
-      fetch = {
-        Log.e("Repository", "in fetch(): Repos")
-        val apiRepos = apiDataSource.searchRepos(s).items
-        Log.e("Repository", "all apiRepos size ${apiRepos.size}")
+  override fun getRepoListNetworkBoundResource(s: String): Flow<Resource<List<Repo>>> {
 
-        apiRepos
+    return repoSearchNetworkBoundResource(
 
-      },
-      filterFetch = { cachedRepos, apiRepos ->
-        apiRepos.flatMap { repos ->
-          cachedRepos.filter {
-            repos.id != it.id
-          }.toList()
-          apiRepos
-        }
+      // make request
+      fetchRemote = {
+        Log.e("Repository", "fetchRemote()")
+        apiDataSource.searchRepos(s, 50)
       },
 
-      saveFetchResult = { repos ->
-        dbDataSource.withTransaction {
-          repoDao.insertAll(repos)
-        }
+      // extract data
+      getDataFromResponse = {
+        Log.e("Repository", "getDataFromResponse()")
+        it.body()!!.items
       },
 
-      shouldFetch = { repos ->
-        //repos.none { repo -> repo.name.compareTo(s, false) ==0 }
-        repos.isEmpty()
+      // save data
+      saveFetchResult = {
+          repos ->
+        Log.e("Repository", "saveFetchResult()")
+        prefs.setSearchKeyword(s)
+        repoDetailDao.insertToRepoDetail(repos)
+
+      },
+
+      // return saved data
+      fetchLocal = {
+        Log.e("Repository", "fetchLocal()")
+        repoDetailDao.getRepoDetail()
+      },
+
+      // should fetch data from remote api or local db
+      shouldFetch = {
+        Log.e("Repository", "shouldFetch()")
+        CurrentNetworkStatus.getNetwork(appContext)
       }
-    )
+
+
+    ).flowOn(Dispatchers.IO)
+  }
+
+
+
 }
 
 ```
