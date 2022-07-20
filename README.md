@@ -1,4 +1,5 @@
-# RepoSearchWithComposeAndFlow
+# Github RepoSearch
+#### Using Compose And Flow
 A sample Github RepoSearch app using Android Compose as it's UI, Kotlin StateFlow &amp; SharedFlow as its data flow, Dagger Hilt as it's dependency injection, Room for offline cache and MVVM architect.
 
 ## Screenshot
