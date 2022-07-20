@@ -247,7 +247,7 @@ fun KeywordSearchPage(navHostController: NavHostController, keywordSearchPageVie
 Use Room database for offline storage and cache [Room](https://developer.android.com/training/data-storage/room/accessing-data) together with the help of 
 Network Bound Resource  [Network Bound Resource](https://developer.android.com/topic/libraries/architecture/coroutines#viewmodelscope).
 
-# RepoSearchDatabase
+### RepoSearchDatabase
 ```kotlin
 @Database(entities = [Repo::class, Owner::class, Keyword::class], version = 1, exportSchema = false)
 abstract class RepoSearchDatabase() : RoomDatabase() {
@@ -264,7 +264,7 @@ abstract class RepoSearchDatabase() : RoomDatabase() {
 }
 
 ```
-# RepoDetail Table Dao
+### RepoDetail Table Dao
 ```kotlin
 
 @Dao
@@ -319,7 +319,7 @@ abstract class RepoDetailDao: RepoDao, OwnerDao {
 }
 
 ```
-# Repo Table Dao
+### Repo Table Dao
 ```kotlin
 @Dao
 interface RepoDao {
@@ -345,7 +345,7 @@ interface RepoDao {
 }
 
 ```
-# Owner Table Dao
+### Owner Table Dao
 ```kotlin
 @Dao
 interface OwnerDao {
@@ -359,7 +359,7 @@ interface OwnerDao {
 }
 
 ```
-# RepoSearch Repository with Network Bound Resource for offline cache
+### RepoSearch Repository with Network Bound Resource for offline cache
 ```kotlin
 class RepoSearchRepository @Inject constructor(
   private val apiDataSource: RestDataSource,
