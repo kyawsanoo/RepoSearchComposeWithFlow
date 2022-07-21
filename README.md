@@ -1,6 +1,16 @@
 # Github RepoSearch
-#### Using Compose And Flow
+### Using Compose And Flow
 A sample Github RepoSearch app using Android Compose as it's UI, Kotlin StateFlow &amp; SharedFlow as its data flow, Dagger Hilt as it's dependency injection, Room for offline cache and MVVM architect.
+#### Key Features
+****
+The app cover the following features:
+* Offline Cache
+* Swipe to Refresh
+* Error Handling
+* Network check
+
+## Apk link
+Download RepoSearch app at [Google Drive ](https://drive.google.com/file/d/1VR5n7oMENmtyWMwccxCnP-k0XFnptZVI/view?usp=sharing).
 
 ## Screenshot
 Watch screen flow in RepoSearch app at [youtube ](https://youtu.be/uoAo-_XJvdI).
@@ -11,7 +21,7 @@ repo search list|keyword suggestion list|repo detail
 ## Architecture
 <img src="images/architecture.png" width="250px" />
 
-### SharedFlow usage in HomePage repo list suggestion
+## SharedFlow usage in HomePage repo list suggestion
 Call a ViewModel function, and emit to [MutableSharedFlow](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-mutable-shared-flow/).
 
 After transformed to hot stream with [ViewModelScope](https://developer.android.com/topic/libraries/architecture/coroutines#viewmodelscope), 
@@ -165,7 +175,7 @@ fun RepoListPage(
 
 ```
 
-### SharedFlow usage in KeywordSearchPage keyword list
+## SharedFlow usage in KeywordSearchPage keyword list
 Call a ViewModel function, and emit to [MutableSharedFlow](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-mutable-shared-flow/).
 
 After transformed to hot stream with [ViewModelScope](https://developer.android.com/topic/libraries/architecture/coroutines#viewmodelscope),
@@ -244,9 +254,8 @@ fun KeywordSearchPage(navHostController: NavHostController, keywordSearchPageVie
 }
 
 ```
-### Using Room and Network Bound Resource for offline cache 
-Use Room database for offline storage and cache [Room](https://developer.android.com/training/data-storage/room/accessing-data) together with the help of 
-Network Bound Resource  [Network Bound Resource](https://developer.android.com/topic/libraries/architecture/coroutines#viewmodelscope).
+## Using Room and Network Bound Resource for offline cache 
+Use Room database for offline storage and cache [Room](https://developer.android.com/training/data-storage/room/accessing-data) 
 
 ### RepoSearchDatabase
 ```kotlin
@@ -361,6 +370,7 @@ interface OwnerDao {
 
 ```
 ### RepoSearch Repository with Network Bound Resource for offline cache
+###Network Bound Resource  [Network Bound Resource](https://developer.android.com/topic/libraries/architecture/coroutines#viewmodelscope).
 ```kotlin
 class RepoSearchRepository @Inject constructor(
   private val apiDataSource: RestDataSource,
